@@ -2022,6 +2022,27 @@ design rules under a new name.</description>
 <wire x1="70.42" y1="55.96" x2="72.95" y2="58.49" width="0.3048" layer="16"/>
 <wire x1="72.95" y1="58.49" x2="77.94" y2="58.49" width="0.3048" layer="16"/>
 </signal>
+<signal name="S$115">
+<via x="87.35" y="83.91" extent="1-16" drill="0.6"/>
+</signal>
+<signal name="S$116">
+<via x="87.68" y="2.82" extent="1-16" drill="0.6"/>
+</signal>
+<signal name="S$117">
+<via x="2.41" y="2.98" extent="1-16" drill="0.6"/>
+</signal>
+<signal name="S$118">
+<via x="16.26" y="29.77" extent="1-16" drill="0.6"/>
+</signal>
+<signal name="S$119">
+<via x="60.72" y="29.44" extent="1-16" drill="0.6"/>
+</signal>
+<signal name="S$120">
+<via x="36.5" y="78.19" extent="1-16" drill="0.6"/>
+</signal>
+<signal name="S$121">
+<via x="11.44" y="73.08" extent="1-16" drill="0.6"/>
+</signal>
 </signals>
 </board>
 </drawing>
