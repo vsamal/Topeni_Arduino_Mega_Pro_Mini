@@ -2,9 +2,9 @@
   https://arduino-info.wikispaces.com/Ethernet
 
 rele 1 - A0, A2, A4, A6
-key 1  - A1, A3, A4, A7
+key 1  - A1, A3, A5, A7
 
-rele 2 - A3, A11, A13, A15
+rele 2 - A9, A11, A13, A15
 key 2  - A8, A10, A12, A14
 
 led 3  - 32, 34, 36, 38
@@ -27,8 +27,10 @@ BoardPin 2 - 31
 
 */
 
+
 // #include "SPI.h"
-#include "Wire.h"
+
+// #include "Wire.h"
 #include "OneWire.h"
 #include "Ethernet.h"
 #include "LiquidCrystal_I2C.h"
@@ -37,44 +39,81 @@ BoardPin 2 - 31
 #include "AM2320.h"
 //#include "avr/wdt.h"
 
+
+#define LCDWidth 240  //define screen width,height
+#define LCDHeight 400
+#define _Digole_Serial_I2C_  //To tell compiler compile the special communication only, 
+#define TOUCH_SCEEN   //if the module equipt with touch screen, use this, otherwise use // to disable it
+#define FLASH_CHIP    //if the module equipt with 2MB or 4MB flash chip, use it, otherwise  use // to disable it
+#define Ver 34           //if the version of firmware on display is V3.3 and newer, use this
+//all available are:_Digole_Serial_UART_, _Digole_Serial_I2C_ and _Digole_Serial_SPI_
+//#define MONO  //if the screen panel is monochrome
+
+//end changing
+
+//define 8 bit color, see:https://en.wikipedia.org/wiki/8-bit_color
+#define WHITE 0xFF
+#define BLACK 0
+#define RED 0xE0
+#define GREEN 0x1A
+#define BLUE 0x03
+//define draw window
+#define DW_X 5
+#define DW_Y 8
+#define DW_W (LCDWidth - 10)
+#define DW_H (LCDHeight - 15)
+#ifdef MONO
+#define COLORRG 2
+#define BGCOLOR 1
+#else
+#define BGCOLOR 256
+#define COLORRG 256
+#endif
+
+#define basex 25
+#define basey 25
+#define R 20
+
+#include "DigoleSerial.h"
+
+#include "Wire.h"
+DigoleSerialDisp mydisp(&Wire, '\x27'); //I2C:Arduino UNO: SDA (data line) is on analog input pin 4, and SCL (clock line) is on analog input pin 5 on UNO and Duemilanove
+
+#include "Demo_Data.h" //include images and fonts
+
+
 // definice cidla teplota a vlhkost
 AM2320 th;
 
 float teplota;
 float vlhkost;
 
-int val_int;
-int val_decimal;
 
-// precteny data z I2C pro textovy vystup na odeslani do displeje
-// I2C PINs A4, A5
-String dataI2C; 
-
-// convert to bin
-byte bin_convert[9] = {99, 1, 2, 4, 8, 16, 32, 64, 128};
 // tlacitka vstupu
-byte tlacitko_modul[5] = {99, A2, A3, A0, A1};
+byte tlacitko_modul[9] = {99, A1, A3, A5, A7, A8, A10, A12, A14};
+byte tlacitko_modul_b[5] = {99, 33, 35, 37, 39};
 // pamet rele vystupu
-byte rele_modul[17] = {99, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0};
+byte rele_modul[9] = {99, A0, A2, A4, A6, A9, A11, A13, A15};
 
 // detekce alarmu
-byte alarm = 8;
+byte SIM_reset = 28;
+byte alarm = 29;
 boolean is_alarm = false;
-byte internet_error = 9;
+byte led_alarm = 34;
+byte led_internet_error = 32;
+byte led_pwr = 36;
+byte led_fnc = 38;
 
-char s;
-SoftwareSerial SIM900(5, 6); //RX,TX
+char sim_read;
 
 // nastavení čísla vstupního pinu
-const int pinCidlaDS = 3;
+const int pinCidlaDS = 7;
 // vytvoření instance oneWireDS z knihovny OneWire
 OneWire oneWireDS(pinCidlaDS);
 // vytvoření instance senzoryDS z knihovny DallasTemperature
 DallasTemperature senzoryDS(&oneWireDS);
 
 
-//nastavíme adresu a typ displeje
-LiquidCrystal_I2C lcd(0x3F,20,4);  // nastavení adresy (0x3F) je důležité!!!
 
 EthernetClient client;
 // Ethernet PINs 10, 11, 12, 13
@@ -122,7 +161,7 @@ void setup()   {
   
   Wire.begin();  
   Serial.begin(9600);
-  SIM900.begin(9600); 
+  Serial1.begin(9600); 
 
   // zapnutí komunikace knihovny s Dallas teplotním čidlem
   senzoryDS.begin();
@@ -136,15 +175,46 @@ void setup()   {
   lcd.print("Hello, world!");  
 
   // tlacitka relatek jako vstupy s pull up odporem na vstupu
-  for(int i = 1; i <= 4; i++){
+  for(int i = 1; i <= 8; i++){
         pinMode(tlacitko_modul[i], INPUT_PULLUP);
+  }
+
+  // tlacitka funkcí jako vstupy s pull up odporem na vstupu
+  for(int i = 1; i <= 4; i++){
+        pinMode(tlacitko_modul_b[i], INPUT_PULLUP);
+  }
+
+  // rele jako vstupy na nastavime HIGH jako vypnute vstupy
+  for(int i = 1; i <= 8; i++){
+        pinMode(rele_modul[i], OUTPUT);
+        digitalWrite(rele_modul[i], HIGH);
   }
 
   // vstup z alarmu    
   pinMode(alarm, INPUT_PULLUP);
 
   // kontrolka ze nejede internet
-  pinMode(internet_error, OUTPUT);
+  pinMode(led_internet_error, OUTPUT);
+  digitalWrite(led_internet_error, HIGH);
+
+  // kontrolka ze je alarb
+  pinMode(led_alarm, OUTPUT);
+  digitalWrite(led_alarm, HIGH);
+
+  // kontrolka power
+  pinMode(led_pwr, OUTPUT);
+  digitalWrite(led_pwr, LOW);
+
+  // kontrolka fnc
+  pinMode(led_fnc, OUTPUT);
+  digitalWrite(led_fnc, HIGH);
+
+
+  // reset SIM
+  pinMode(SIM_reset, OUTPUT);
+  digitalWrite(SIM_reset, LOW);
+  delay(200)
+  digitalWrite(SIM_reset, HIGH);
 
 
   Ethernet.begin(mac, ip, dnServer, gateway, subnet);
@@ -158,13 +228,6 @@ void setup()   {
   Wire.write(0x00); // DDR Port1 all input 0xFF = B11111111   
   Wire.endTransmission();     
 
-   /*
-   Wire.beginTransmission(0x20); // setup out direction registers 
-   Wire.write(0x04); // pointer 
-   Wire.write(0xff); // DDR Port0 no invert Port0  
-   Wire.write(0x00); // DDR Port1 invert Port0   
-   Wire.endTransmission(); 
-   */
 
   // strankovac displeje
   page_cnt = 1;
@@ -184,8 +247,6 @@ void loop() {
   readTemp();
   // read_data_topeni();
 
-   
-  // setI2Cvals(senzoryDS.getTempCByIndex(0));
 
   /*
   showtext("Kuchyn + K", "teplota", 16);
@@ -203,16 +264,6 @@ void loop() {
 
         next_sd = 0;
   
-      
-        // posleme stav relatek
-        for(int i = 1; i <= 16; i++){
-              // Wire.write(rele_modul[i]);
-        }
-      
-        
-        // zobrazime stav teplomeru a vlhkomeru
-        //setI2Cvals(teplota);
-        
         if(page_cnt == 1){
                   
                   lcd.clear();
@@ -279,7 +330,7 @@ void loop() {
              delay(300);
              if(digitalRead(alarm) == LOW){
                 if(is_alarm == false){
-                        digitalWrite(internet_error, HIGH);
+                        digitalWrite(led_alarm, LOW);
                         setAlarm();
                   }
                 is_alarm = true;
@@ -298,7 +349,7 @@ void loop() {
 
     // projedeme si stisknuta tlacitka
     // Serial.println("Test key");  
-    for(int i = 1; i <= 4; i++){
+    for(int i = 1; i <= 8; i++){
           if(digitalRead(tlacitko_modul[i]) == LOW){
             Serial.println(i); //vypise stisknute tlacitko
             next_sd = 999;
@@ -310,38 +361,26 @@ void loop() {
 
 
 
+  // obcas precteme nastaveni z internetu
   // Serial.println("Test internet");  
   if (((signed long)(millis() - next)) > 0){
       
         Serial.println("Read internet ready");  
-        next = millis() + 11000;
+        next = millis() + 11000;        
 
-        digitalWrite(internet_error, HIGH);
-
-        read_data_topeni(0);
+        read_data_topeni(0); // precteme data z intenetu
         
   }
   // Serial.println("Test internet OK");  
 
 
 
-        // zapnu relatka
-        
-        set_val = 0;
-        for(int i = 1; i <= 8; i++){
-              if(rele_modul[i] == 0){
-                set_val+= bin_convert[i];                                
-                }               
-        } 
-                
-      
-        Wire.beginTransmission(0x20);  // set mcp23016 for all output
-        Wire.write(0x00); // begin here
-        Wire.write(set_val); 
-        Wire.write(set_val); 
-        Wire.endTransmission();
-
-    
+  // nastavime relatka dle stavu
+    set_val = 0;
+    for(int i = 1; i <= 8; i++){
+           digitalWrite(rele_modul[i], tlacitko_modul[i]);
+    } 
+               
 
 }
 
@@ -349,27 +388,7 @@ void loop() {
 
 
 
-// alarm zavola na mobil
-void setAlarm(){
-            Serial.println("Alarm");                   
-            
-            //makeCall("604833891");
-            //makeCall("605906254");
-            makeCall("737226659");
-            //sendSMS("737226659");
-            //makeCall("737226659");
-            
-}
 
-
-
-
-// prevede float cislo na dve desetine na prenos po I2C
-void setI2Cvals(float teplo_conv){
-  
-        val_int = teplo_conv;
-        val_decimal = (teplo_conv - val_int) * 10;  
-}
 
 
 
@@ -404,6 +423,8 @@ void read_data_topeni(int send_relay) {
       
       clr_wdt();
 
+      digitalWrite(led_internet_error, LOW);
+
       Serial.print("Connect to ");
       Serial.println(server);
 
@@ -412,7 +433,7 @@ void read_data_topeni(int send_relay) {
 
           Serial.println("Connected");
 
-          // digitalWrite(internet_error, LOW);
+          // digitalWrite(, LOW);
           clr_wdt();
           
           String myURL = "GET /topeni/topeni.php?relay=";
@@ -463,7 +484,7 @@ void read_data_topeni(int send_relay) {
                  
                 if (nalez){
 
-                  digitalWrite(internet_error, LOW);
+                  digitalWrite(led_internet_error, HIGH);
                   // Serial.print(read_buffer); //vypise prijata data
                   // na tohle mozna udelame funkci  
                   if (read_buffer == '0'){rele_modul[relec] = 0;}
@@ -490,7 +511,7 @@ void read_data_topeni(int send_relay) {
         
         //Serial.println("Connect failed");
 
-        digitalWrite(internet_error, HIGH);
+        digitalWrite(led_internet_error, LOW);
 
         clr_wdt();
 
@@ -555,6 +576,20 @@ void delayWDT(int delaysec = 30){
 
 
 
+// alarm zavola na mobil
+void setAlarm(){
+            Serial.println("Alarm");                   
+            
+            //makeCall("604833891");
+            //makeCall("605906254");
+            makeCall("737226659");
+            //sendSMS("737226659");
+            //makeCall("737226659");
+
+            digitalWrite(led_alarm, HIGH);
+            
+}
+
 
 
 void makeCall(String callnumber){
@@ -569,17 +604,17 @@ void makeCall(String callnumber){
 
             clr_wdt();
             
-            SIM900.print("ATD");
-            SIM900.print(callnumber);
-            SIM900.println(";");
+            Serial1.print("ATD");
+            Serial1.print(callnumber);
+            Serial1.println(";");
             delay(100);            
              
-            if(SIM900.available()){
+            if(Serial1.available()){
                   lcd.setCursor ( 5, 3 );
                   lcd.print("vytacim...");
-                  while (SIM900.available()){
-                  s = SIM900.read();
-                    Serial.print(s);
+                  while (Serial1.available()){
+                  sim_read = Serial1.read();
+                    Serial.print(sim_read);
                   }
             }else{
                   lcd.setCursor ( 3, 3 );
@@ -588,7 +623,7 @@ void makeCall(String callnumber){
         
             delayWDT(29);
                        
-            SIM900.println("ATH");                      
+            Serial1.println("ATH");                      
             delay (1000);
             clr_wdt();
 }
@@ -598,25 +633,25 @@ void makeCall(String callnumber){
 
 
 void sendSMS(char smsnumber[]){
-          SIM900.println("AT+CMGF=1");  // AT command na odeslani SMS zpravy
+          Serial1.println("AT+CMGF=1");  // AT command na odeslani SMS zpravy
           delay(100);
-          SIM900.print("AT+CMGS=\"");  // cislo prijemce
-          SIM900.print(smsnumber);  // cislo prijemce
-          SIM900.println("\"");  // cislo prijemce
+          Serial1.print("AT+CMGS=\"");  // cislo prijemce
+          Serial1.print(smsnumber);  // cislo prijemce
+          Serial1.println("\"");  // cislo prijemce
           delay(100);
-          SIM900.println("Alarm send.");  // zprava k odeslani
-          SIM900.print("Status: ");  // zprava k odeslani
-          SIM900.print(rele_modul[1]);  // zprava k odeslani
-          SIM900.print(rele_modul[2]);  // zprava k odeslani
-          SIM900.print(rele_modul[3]);  // zprava k odeslani
-          SIM900.println(rele_modul[4]);  // zprava k odeslani
-          SIM900.print(" is set.");  // zprava k odeslani
+          Serial1.println("Alarm send.");  // zprava k odeslani
+          Serial1.print("Status: ");  // zprava k odeslani
+          Serial1.print(rele_modul[1]);  // zprava k odeslani
+          Serial1.print(rele_modul[2]);  // zprava k odeslani
+          Serial1.print(rele_modul[3]);  // zprava k odeslani
+          Serial1.println(rele_modul[4]);  // zprava k odeslani
+          Serial1.print(" is set.");  // zprava k odeslani
           delay(100);
-          SIM900.println((char)26);  //  AT command znak a ^Z, ASCII code 26 pro konec SMS zpravy
+          Serial1.println((char)26);  //  AT command znak a ^Z, ASCII code 26 pro konec SMS zpravy
           delay(100); 
-          SIM900.println();
+          Serial1.println();
           delayWDT(11);  // pokej na odesln SMS
-          //SIM900power();  // vypni GSM module
+          //Serial1power();  // vypni GSM module
           clr_wdt();
         }
 
