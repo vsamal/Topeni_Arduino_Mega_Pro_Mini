@@ -10,8 +10,8 @@ key 2  - A8, A10, A12, A14
 led 3  - 32, 34, 36, 38
 key 3  - 33, 35, 37, 39
 
-KeypadPin 1 - 41
-KeypadPin 2 - 43
+KeypadPin 1 - 41 - rezerva
+KeypadPin 2 - 43 - frezerva
 
 RecieverData   - 2
 TransmiterData - 11, 12
@@ -21,8 +21,8 @@ OneWireData - 7
 SIM - Serial1
 SIM RST - 28
 ALARM   - 29
-BoardPin 1 - 30
-BoardPin 2 - 31
+BoardPin 1 - 30 - rezerva
+BoardPin 2 - 31 - rezerva
 
 
 */
@@ -33,21 +33,17 @@ BoardPin 2 - 31
 // #include "Wire.h"
 #include "OneWire.h"
 #include "Ethernet.h"
-#include "LiquidCrystal_I2C.h"
 #include "SoftwareSerial.h"
 #include "DallasTemperature.h"
 #include "AM2320.h"
 //#include "avr/wdt.h"
 
 
-#define LCDWidth 240  //define screen width,height
-#define LCDHeight 400
-#define _Digole_Serial_I2C_  //To tell compiler compile the special communication only, 
+
 #define TOUCH_SCEEN   //if the module equipt with touch screen, use this, otherwise use // to disable it
 #define FLASH_CHIP    //if the module equipt with 2MB or 4MB flash chip, use it, otherwise  use // to disable it
+#define _Digole_Serial_I2C_  //To tell compiler compile the special communication only, 
 #define Ver 34           //if the version of firmware on display is V3.3 and newer, use this
-//all available are:_Digole_Serial_UART_, _Digole_Serial_I2C_ and _Digole_Serial_SPI_
-//#define MONO  //if the screen panel is monochrome
 
 //end changing
 
@@ -55,31 +51,33 @@ BoardPin 2 - 31
 #define WHITE 0xFF
 #define BLACK 0
 #define RED 0xE0
-#define GREEN 0x1A
+#define GREEN 0x1C
 #define BLUE 0x03
-//define draw window
-#define DW_X 5
-#define DW_Y 8
-#define DW_W (LCDWidth - 10)
-#define DW_H (LCDHeight - 15)
-#ifdef MONO
-#define COLORRG 2
-#define BGCOLOR 1
-#else
-#define BGCOLOR 256
-#define COLORRG 256
-#endif
+#define YELLOW 0xFE
+#define ORANGE 0xEC
+#define MAGENTA 0xEB
+#define CYAN 0x1B
+#define BROWN 0xAC
+#define RAMECEK 0xFB
+#define RELE 0x2C
+#define TOPENI 0xE0
 
-#define basex 25
-#define basey 25
-#define R 20
+
+#define BGCOLOR 0
 
 #include "DigoleSerial.h"
 
 #include "Wire.h"
 DigoleSerialDisp mydisp(&Wire, '\x27'); //I2C:Arduino UNO: SDA (data line) is on analog input pin 4, and SCL (clock line) is on analog input pin 5 on UNO and Duemilanove
 
-#include "Demo_Data.h" //include images and fonts
+
+void display_Icons(void);
+void use_User_Font_Standard(void);
+void use_User_Font_In_Flash_Chip(void);
+
+void showRooms(void);
+void showRoomsTemp(void);
+void showAlarm(void);
 
 
 // definice cidla teplota a vlhkost
@@ -94,6 +92,7 @@ byte tlacitko_modul[9] = {99, A1, A3, A5, A7, A8, A10, A12, A14};
 byte tlacitko_modul_b[5] = {99, 33, 35, 37, 39};
 // pamet rele vystupu
 byte rele_modul[9] = {99, A0, A2, A4, A6, A9, A11, A13, A15};
+byte rele_set[9] = {99, 1, 1, 1, 1, 1, 1, 1, 1};
 
 // detekce alarmu
 byte SIM_reset = 28;
@@ -152,7 +151,8 @@ IPAddress ip(10, 20, 30, 21);
 uint8_t mac[6] = {0x00,0x01,0x02,0x03,0x04,0x05}; 
 char server[] = "www.ipf.cz"; //server, kam se pripojujeme
 
-
+#include "Data.h" //include images and fonts
+#include "Functions.h" //include images and fonts
 
 
 void setup()   {                
@@ -165,14 +165,15 @@ void setup()   {
 
   // zapnutí komunikace knihovny s Dallas teplotním čidlem
   senzoryDS.begin();
+  mydisp.setBgColor(0); //set another back ground color
+  mydisp.setColor(WHITE); //set fore ground color, 8bit format, for 24bit color format, use:setTrueColor(R,G,B)
+  mydisp.clearScreen(); //CLear screen
+
+  delay(700);
+    
 
   
-  lcd.init();                      // initialize the lcd 
- 
-  // Print a message to the LCD.
-  lcd.backlight();
-  lcd.setCursor ( 0, 0 );
-  lcd.print("Hello, world!");  
+  mydisp.begin(); //initiate serial port  
 
   // tlacitka relatek jako vstupy s pull up odporem na vstupu
   for(int i = 1; i <= 8; i++){
@@ -187,7 +188,7 @@ void setup()   {
   // rele jako vstupy na nastavime HIGH jako vypnute vstupy
   for(int i = 1; i <= 8; i++){
         pinMode(rele_modul[i], OUTPUT);
-        digitalWrite(rele_modul[i], HIGH);
+        digitalWrite(rele_modul[i], rele_set[i]);
   }
 
   // vstup z alarmu    
@@ -213,20 +214,23 @@ void setup()   {
   // reset SIM
   pinMode(SIM_reset, OUTPUT);
   digitalWrite(SIM_reset, LOW);
-  delay(200)
+  delay(200);
   digitalWrite(SIM_reset, HIGH);
 
 
   Ethernet.begin(mac, ip, dnServer, gateway, subnet);
 
 
-  // MCP23016 I/O expander configure
-  Wire.begin(); // connect the Arduino as a master 
-  Wire.beginTransmission(0x20); // setup out direction registers 
-  Wire.write(0x06); // pointer  
-  Wire.write(0x00); // DDR Port0 all output 
-  Wire.write(0x00); // DDR Port1 all input 0xFF = B11111111   
-  Wire.endTransmission();     
+  mydisp.setRotation(1);  
+
+  // use_User_Font_Standard();  // upload fonts
+  // use_User_Font_In_Flash_Chip // upload fonts to flash
+  
+  mydisp.setFont(200);
+
+  display_Icons();
+  showRooms();
+  showRoomsTemp();
 
 
   // strankovac displeje
@@ -248,15 +252,6 @@ void loop() {
   // read_data_topeni();
 
 
-  /*
-  showtext("Kuchyn + K", "teplota", 16);
-  showtext("Pokoj puda", "teplota", 20);
-  showtext("Obyvak", "teplota", 22);
-  showtext("Loznice", "teplota", 24);
-  showtext("Venku", "teplota", 22);
-  */
-
-
  
   next_sd++;
   
@@ -266,49 +261,13 @@ void loop() {
   
         if(page_cnt == 1){
                   
-                  lcd.clear();
-                  lcd.setCursor ( 0, 0 );
-                  lcd.print("Kuchyn + Koup.");
-                  lcd.setCursor ( 16, 0 );  
-                  lcd.print(teplota, 1);
-                  // lcd.print(vlhkost);    
-                
-                  lcd.setCursor ( 0, 1 );
-                  lcd.print("Pokoj puda ");
-                  lcd.setCursor ( 16, 1 ); 
-                  lcd.print(senzoryDS.getTempCByIndex(0), 1);
-          
-                  lcd.setCursor ( 0, 2 );
-                  lcd.print("Obyvak ");  
-                  lcd.setCursor ( 16, 2 );
-                  lcd.print(senzoryDS.getTempCByIndex(1), 1);
-          
-                  lcd.setCursor ( 0, 3 );
-                  lcd.print("Loznice ");
-                  lcd.setCursor ( 16, 3 ); 
-                  lcd.print(senzoryDS.getTempCByIndex(2), 1);
-          
-                  // lcd.setCursor ( 0, 4 );
-                  // lcd.print("Venku: ");  
-                  // lcd.print(senzoryDS.getTempCByIndex(1));
-          
+                  showRoomsTemp(); 
+                           
                   page_cnt++;
                   
-        }else if(page_cnt == 2){
+        }else if(page_cnt == 2){ // jen kdybysme stránkovali
 
-                  lcd.clear();
-                  lcd.setCursor ( 0, 0 );
-                  lcd.print("Kuchyn + Koupelna");
-                  lcd.setCursor ( 0, 1 );
-                  lcd.print("Vlhkost ");                  
-                  lcd.setCursor ( 14, 1 );  
-                  lcd.print(vlhkost); 
-                  lcd.print("%");   
-                
-                  lcd.setCursor ( 0, 3 );
-                  lcd.print("Teplota venku");
-                  lcd.setCursor ( 16, 3 ); 
-                  lcd.print(senzoryDS.getTempCByIndex(2), 1);
+                  showRoomsTemp(); 
                     
                   page_cnt = 1;
           
@@ -378,7 +337,7 @@ void loop() {
   // nastavime relatka dle stavu
     set_val = 0;
     for(int i = 1; i <= 8; i++){
-           digitalWrite(rele_modul[i], tlacitko_modul[i]);
+           digitalWrite(rele_modul[i], rele_set[i]);
     } 
                
 
@@ -441,8 +400,8 @@ void read_data_topeni(int send_relay) {
           client.print(send_relay);
           client.print("&status=");
                   
-                if (rele_modul[send_relay] == 0){client.print(0);}
-                if (rele_modul[send_relay] == 1){client.print(1);}               
+                if (rele_set[send_relay] == 0){client.print(0);}
+                if (rele_set[send_relay] == 1){client.print(1);}               
           
           client.print("&temp[1]=");
           client.print(teplota);
@@ -466,7 +425,7 @@ void read_data_topeni(int send_relay) {
           Serial.print(myURL);
           Serial.print(send_relay);
           Serial.print("&status=");
-          Serial.println(rele_modul[send_relay]);
+          Serial.println(rele_set[send_relay]);
 
           nalez = false;
           byte relec = 1;        
@@ -487,8 +446,8 @@ void read_data_topeni(int send_relay) {
                   digitalWrite(led_internet_error, HIGH);
                   // Serial.print(read_buffer); //vypise prijata data
                   // na tohle mozna udelame funkci  
-                  if (read_buffer == '0'){rele_modul[relec] = 0;}
-                  if (read_buffer == '1'){rele_modul[relec] = 1;}
+                  if (read_buffer == '0'){rele_set[relec] = 0;}
+                  if (read_buffer == '1'){rele_set[relec] = 1;}
                   relec++;                  
 
                 }
@@ -535,11 +494,11 @@ void setRelayFromKey(int tlac_press){
             Serial.print("Ctu stav rele ");
             Serial.print(tlac_press);
             Serial.print(" ten je nastaven na ");
-            Serial.println(rele_modul[tlac_press]);            
+            Serial.println(rele_set[tlac_press]);            
 
             // na tohle mozna udelame funkci  
             // rele nastavime
-            rele_modul[tlac_press] = !rele_modul[tlac_press];
+            rele_set[tlac_press] = !rele_set[tlac_press];
 
             
             Serial.print("Tlacitko ");
@@ -594,13 +553,7 @@ void setAlarm(){
 
 void makeCall(String callnumber){
 
-            lcd.clear();
-            lcd.setCursor ( 3, 0 );
-            lcd.print("*** Alarm ***");
-            lcd.setCursor ( 4, 1 );  
-            lcd.print("Volam cislo:");
-            lcd.setCursor ( 6, 2 );
-            lcd.print(callnumber);            
+            showAlarm(callnumber);
 
             clr_wdt();
             
@@ -610,21 +563,20 @@ void makeCall(String callnumber){
             delay(100);            
              
             if(Serial1.available()){
-                  lcd.setCursor ( 5, 3 );
-                  lcd.print("vytacim...");
+                  mydisp.print(" vytacim...");
                   while (Serial1.available()){
                   sim_read = Serial1.read();
                     Serial.print(sim_read);
                   }
             }else{
-                  lcd.setCursor ( 3, 3 );
-                  lcd.print("nedostupny...");                    
+                  mydisp.print(" nedostupny...");                    
             }
         
             delayWDT(29);
                        
             Serial1.println("ATH");                      
             delay (1000);
+            void showAlarm();
             clr_wdt();
 }
 
