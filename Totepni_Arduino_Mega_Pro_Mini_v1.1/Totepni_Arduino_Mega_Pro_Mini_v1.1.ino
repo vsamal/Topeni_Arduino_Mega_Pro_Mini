@@ -126,7 +126,8 @@ char read_buffer;
 boolean nalez = false;
 
 // the dns server ip
-IPAddress dnServer(193, 85, 1, 12);
+// IPAddress dnServer(193, 85, 1, 12);
+IPAddress dnServer(192, 168, 1, 1);
 // the router's gateway address:
 IPAddress gateway(192, 168, 1, 1);
 // the subnet:
@@ -337,7 +338,7 @@ void loop() {
   // nastavime relatka dle stavu
     set_val = 0;
     for(int i = 1; i <= 8; i++){
-           digitalWrite(rele_modul[i], rele_set[i]);
+           digitalWrite(rele_modul[i], !rele_set[i]);
     } 
                
 
