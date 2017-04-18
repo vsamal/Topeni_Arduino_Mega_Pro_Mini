@@ -72,9 +72,11 @@ DigoleSerialDisp mydisp(&Wire, '\x27'); //I2C:Arduino UNO: SDA (data line) is on
 
 
 void display_Icons(void);
+void display_Status(void);
 void use_User_Font_Standard(void);
 void use_User_Font_In_Flash_Chip(void);
 
+void delayWDT(void);
 void showRooms(void);
 void showRoomsTemp(void);
 void showAlarm(void);
@@ -86,6 +88,9 @@ AM2320 th;
 float teplota;
 float vlhkost;
 
+// font ukazujici teplotu
+byte fontTemperature = 200; // 200
+byte fontSystem = 0;
 
 // tlacitka vstupu
 byte tlacitko_modul[9] = {99, A1, A3, A5, A7, A8, A10, A12, A14};
@@ -93,6 +98,11 @@ byte tlacitko_modul_b[5] = {99, 33, 35, 37, 39};
 // pamet rele vystupu
 byte rele_modul[9] = {99, A0, A2, A4, A6, A9, A11, A13, A15};
 byte rele_set[9] = {99, 1, 1, 1, 1, 1, 1, 1, 1};
+
+// pozice starus LED
+int positionStatus_x[9] = {99, 0, 0, 0, 0, 0, 0, 0, 0};
+int positionStatus_y[9] = {99, 0, 30, 60, 90, 120, 150, 180, 210};
+int positionStatus_pos[9] = {99, 1, 2, 3, 0, 4, 0, 0, 0};
 
 // detekce alarmu
 byte SIM_reset = 28;
@@ -166,11 +176,11 @@ void setup()   {
 
   // zapnutí komunikace knihovny s Dallas teplotním čidlem
   senzoryDS.begin();
+
+  delayWDT(11);
   mydisp.setBgColor(0); //set another back ground color
   mydisp.setColor(WHITE); //set fore ground color, 8bit format, for 24bit color format, use:setTrueColor(R,G,B)
-  mydisp.clearScreen(); //CLear screen
-
-  delay(700);
+  mydisp.clearScreen(); //CLear screen  
     
 
   
@@ -227,7 +237,7 @@ void setup()   {
   // use_User_Font_Standard();  // upload fonts
   // use_User_Font_In_Flash_Chip // upload fonts to flash
   
-  mydisp.setFont(200);
+  mydisp.setFont(fontTemperature);
 
   display_Icons();
   showRooms();
@@ -268,7 +278,7 @@ void loop() {
                   
         }else if(page_cnt == 2){ // jen kdybysme stránkovali
 
-                  showRoomsTemp(); 
+                  showRoomsTemp();
                     
                   page_cnt = 1;
           
@@ -339,6 +349,7 @@ void loop() {
     set_val = 0;
     for(int i = 1; i <= 8; i++){
            digitalWrite(rele_modul[i], !rele_set[i]);
+           display_Status(i, rele_set[positionStatus_pos[i]]);
     } 
                
 
@@ -370,12 +381,6 @@ void readTemp() {
   clr_wdt();
 }
 
-
-void clr_wdt() {
-
-      // wdt_reset();
-  
-}
 
 
 void read_data_topeni(int send_relay) {
@@ -516,23 +521,6 @@ void setRelayFromKey(int tlac_press){
 
 
 
-
-
-
-
-
-
-void delayWDT(int delaysec = 30){
-            clr_wdt();
-       
-            int waiting_call = 0;
-            while(waiting_call <= delaysec){
-                delay (1000);
-                clr_wdt();
-                waiting_call += 1;
-            }            
-            clr_wdt();
-}
 
 
 

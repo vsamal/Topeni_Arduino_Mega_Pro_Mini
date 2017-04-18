@@ -1,7 +1,9 @@
 void showRooms(void)
 {
 
-  mydisp.setFont(200);
+  mydisp.setFont(fontTemperature);
+
+  mydisp.setColor(WHITE);
   
   mydisp.setTextPosAbs(35, 22);
   mydisp.print("Kuchyn");
@@ -23,38 +25,61 @@ void showRooms(void)
   
 }
 
-void showRoomsTemp(void)
+void mydispSetColor(int teplota)
+{
+    if(teplota < 19){
+      
+       mydisp.setColor(CYAN);
+       
+    }else if(teplota < 26){
+      
+       mydisp.setColor(GREEN);
+       
+    }else{
+      
+       mydisp.setColor(RED);
+       
+    }
+}
+
+void showRoomsTemp()
 {
 
-  mydisp.setFont(200);
+  mydisp.setFont(fontTemperature);
 
   mydisp.setColor(YELLOW);
-  
+
+  mydispSetColor(senzoryDS.getTempCByIndex(0));  
   mydisp.setTextPosAbs(245, 22);
   mydisp.print(senzoryDS.getTempCByIndex(0), 1);
-  mydisp.print("C");
+  mydisp.print("C ");
 
+  mydispSetColor(teplota);
   mydisp.setTextPosAbs(245, 52);
   mydisp.print(teplota, 1);
-  mydisp.print("C");
+  mydisp.print("C ");
 
+  mydispSetColor(senzoryDS.getTempCByIndex(0));
   mydisp.setTextPosAbs(245, 82);
   mydisp.print(senzoryDS.getTempCByIndex(0), 1);
-  mydisp.print("C");
+  mydisp.print("C ");
 
+  mydispSetColor(senzoryDS.getTempCByIndex(0));
   mydisp.setTextPosAbs(245, 112);
   mydisp.print(senzoryDS.getTempCByIndex(0), 1);
-  mydisp.print("C");
+  mydisp.print("C ");
 
+  mydispSetColor(senzoryDS.getTempCByIndex(0));
   mydisp.setTextPosAbs(245, 142);
   mydisp.print(senzoryDS.getTempCByIndex(0), 1);
-  mydisp.print("C");
+  mydisp.print("C ");
 
+  mydispSetColor(senzoryDS.getTempCByIndex(0));
   mydisp.setTextPosAbs(245, 172);
   mydisp.print(senzoryDS.getTempCByIndex(0), 1);
-  mydisp.print("C");
+  mydisp.print("C ");
 
-  mydisp.setColor(CYAN);
+  mydisp.setColor(YELLOW);
   
   mydisp.setTextPosAbs(165, 52);
   mydisp.print(vlhkost, 1);
@@ -69,7 +94,7 @@ void showAlarm(String callnumber)
   
   if(callnumber){
             
-            mydisp.setFont(0);
+            mydisp.setFont(fontSystem);
             mydisp.setColor(RED);                          
             mydisp.print("*** Alarm ***");              
             mydisp.print("Volam cislo: ");
@@ -84,21 +109,66 @@ void showAlarm(String callnumber)
 
 
 
-void display_Icons(void)
+void display_Icons()
 {
   // mydisp.drawStr(0, 0, "Draw 256 color image");
   //draw image function have:drawBitmap() for 1bit image,drawBitmap256() for 8bit image,drawBitmap262K() for 18bit image
   //use our image convert tool to convert, www.digole.com/tools
   mydisp.drawBitmap256(330, 0, 64, 64, weather_sun_256);
   mydisp.drawBitmap256(330, 80, 64, 64, temphmeter_a_256);
-  mydisp.drawBitmap256(330, 160, 64, 64, home_icon_3_256  ); 
+  mydisp.drawBitmap256(330, 160, 64, 64, home_icon_3_256); 
+  
+  /*
   mydisp.drawBitmap256(0, 0, 24, 24, switch_on_r_256);
   mydisp.drawBitmap256(0, 30, 24, 24, switch_on_r_256);
   mydisp.drawBitmap256(0, 60, 24, 24, switch_on_g_256);
   mydisp.drawBitmap256(0, 90, 24, 24, switch_on_r_256);
   mydisp.drawBitmap256(0, 120, 24, 24, switch_on_bw_256);
   mydisp.drawBitmap256(0, 150, 24, 24, switch_on_g_256);  
+  */
   
+}
+
+void display_Status(int sensor, byte stav)
+{
+
+  if(stav != 99){
+
+        switch(stav) {
+      
+          case 0:
+            mydisp.drawBitmap256(positionStatus_x[sensor], positionStatus_y[sensor], 24, 24, switch_on_bw_256);
+            break;    
+      
+          case 1:
+            mydisp.drawBitmap256(positionStatus_x[sensor], positionStatus_y[sensor], 24, 24, switch_on_g_256);
+            break;
+      
+          default:
+            mydisp.drawBitmap256(positionStatus_x[sensor], positionStatus_y[sensor], 24, 24, switch_on_r_256);
+            break;
+        }
+
+  }
+  
+}
+
+void clr_wdt() {
+
+      // wdt_reset();
+  
+}
+
+void delayWDT(int delaysec = 30){
+            clr_wdt();
+       
+            int waiting_call = 0;
+            while(waiting_call <= delaysec){
+                delay (1000);
+                clr_wdt();
+                waiting_call += 1;
+            }            
+            clr_wdt();
 }
 
 
