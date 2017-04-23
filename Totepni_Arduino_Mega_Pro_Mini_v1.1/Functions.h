@@ -109,12 +109,103 @@ void showAlarm(String callnumber)
 
 
 
+// ikonky pocasi
+void display_Weather(char weather)
+{
+
+
+        switch(weather) {
+      
+          case '01d':
+            mydisp.drawBitmap256(337, 0, 50, 50, i01d256);
+            break;    
+      
+          case '01n':
+            mydisp.drawBitmap256(337, 0, 50, 50, i01n256);
+            break;
+
+          case '02d':
+            mydisp.drawBitmap256(337, 0, 50, 50, i02d256);
+            break;    
+      
+          case '02n':
+            mydisp.drawBitmap256(337, 0, 50, 50, i02n256);
+            break;
+
+          case '03d':
+            mydisp.drawBitmap256(337, 0, 50, 50, i03d256);
+            break;    
+      
+          case '03n':
+            mydisp.drawBitmap256(337, 0, 50, 50, i03n256);
+            break;
+
+          case '04d':
+            mydisp.drawBitmap256(337, 0, 50, 50, i04d256);
+            break;    
+      
+          case '04n':
+            mydisp.drawBitmap256(337, 0, 50, 50, i04n256);
+            break;
+                        
+          case '09d':
+            mydisp.drawBitmap256(337, 0, 50, 50, i09d256);
+            break;    
+      
+          case '09n':
+            mydisp.drawBitmap256(337, 0, 50, 50, i09n256);
+            break;
+
+          case '10d':
+            mydisp.drawBitmap256(337, 0, 50, 50, i10d256);
+            break;    
+      
+          case '10n':
+            mydisp.drawBitmap256(337, 0, 50, 50, i10n256);
+            break;
+
+          case '11d':
+            mydisp.drawBitmap256(337, 0, 50, 50, i11d256);
+            break;    
+      
+          case '11n':
+            mydisp.drawBitmap256(337, 0, 50, 50, i11n256);
+            break;
+
+          case '13d':
+            mydisp.drawBitmap256(337, 0, 50, 50, i13d256);
+            break;    
+      
+          case '13n':
+            mydisp.drawBitmap256(337, 0, 50, 50, i13n256);
+            break;
+
+          case '50d':
+            mydisp.drawBitmap256(337, 0, 50, 50, i50d256);
+            break;    
+      
+          case '50n':
+            mydisp.drawBitmap256(337, 0, 50, 50, i50n256);
+            break;
+
+                  
+          default:
+            mydisp.drawBitmap256(337, 0, 50, 50, i01d256);
+            break;
+        }
+
+  
+}
+
+
+
 void display_Icons()
 {
   // mydisp.drawStr(0, 0, "Draw 256 color image");
   //draw image function have:drawBitmap() for 1bit image,drawBitmap256() for 8bit image,drawBitmap262K() for 18bit image
   //use our image convert tool to convert, www.digole.com/tools
-  mydisp.drawBitmap256(330, 0, 64, 64, weather_sun_256);
+  // mydisp.drawBitmap256(337, 0, 64, 64, weather_sun_256);
+  display_Weather('01d');
   mydisp.drawBitmap256(330, 80, 64, 64, temphmeter_a_256);
   mydisp.drawBitmap256(330, 160, 64, 64, home_icon_3_256); 
   
@@ -128,6 +219,9 @@ void display_Icons()
   */
   
 }
+
+
+
 
 void display_Status(int sensor, byte stav)
 {

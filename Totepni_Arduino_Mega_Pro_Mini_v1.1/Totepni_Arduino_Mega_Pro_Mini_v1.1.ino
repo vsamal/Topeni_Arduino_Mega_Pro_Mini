@@ -62,6 +62,10 @@ BoardPin 2 - 31 - rezerva
 #define RELE 0x2C
 #define TOPENI 0xE0
 
+byte actWeather = 0;
+char* actualWeather[] = {"01d", "01n", "02d", "02n", "03d", "03n", "04d", "04n", "09d", "09n", "10d", "10n", "11d", "11n", "13d", "13n", "50d", "50n"};
+
+
 
 #define BGCOLOR 0
 
@@ -73,6 +77,7 @@ DigoleSerialDisp mydisp(&Wire, '\x27'); //I2C:Arduino UNO: SDA (data line) is on
 
 void display_Icons(void);
 void display_Status(void);
+void display_Weather(void);
 void use_User_Font_Standard(void);
 void use_User_Font_In_Flash_Chip(void);
 
@@ -351,7 +356,14 @@ void loop() {
            digitalWrite(rele_modul[i], !rele_set[i]);
            display_Status(i, rele_set[positionStatus_pos[i]]);
     } 
-               
+
+
+  // zobrazime ikonku pocasi
+  display_Weather(actualWeather[actWeather]);
+  actWeather++;
+  if(actWeather >= sizeof(actualWeather)){
+    actWeather = 0;
+    }               
 
 }
 
