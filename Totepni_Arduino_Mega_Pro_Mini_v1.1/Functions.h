@@ -110,57 +110,62 @@ void showAlarm(String callnumber)
 
 
 // ikonky pocasi
-void display_Weather(char weather)
+void display_Weather(int weather)
 {
 
-
+        mydisp.setColor(WHITE);
+        mydisp.setTextPosAbs(0, 202);
+        mydisp.print("P: ");
+        mydisp.print(weather);
+        mydisp.print("      ");
+  
         switch(weather) {
       
-          case '01d':
+          case 0:
             mydisp.drawBitmap256(337, 0, 50, 50, i01d256);
             break;    
       
-          case '01n':
+          case 1:
             mydisp.drawBitmap256(337, 0, 50, 50, i01n256);
             break;
 
-          case '02d':
+          case 2:
             mydisp.drawBitmap256(337, 0, 50, 50, i02d256);
             break;    
       
-          case '02n':
+          case 3:
             mydisp.drawBitmap256(337, 0, 50, 50, i02n256);
             break;
 
-          case '03d':
+          case 4:
             mydisp.drawBitmap256(337, 0, 50, 50, i03d256);
             break;    
       
-          case '03n':
+          case 5:
             mydisp.drawBitmap256(337, 0, 50, 50, i03n256);
             break;
 
-          case '04d':
+          case 6:
             mydisp.drawBitmap256(337, 0, 50, 50, i04d256);
             break;    
       
-          case '04n':
+          case 7:
             mydisp.drawBitmap256(337, 0, 50, 50, i04n256);
             break;
                         
-          case '09d':
+          case 8:
             mydisp.drawBitmap256(337, 0, 50, 50, i09d256);
             break;    
       
-          case '09n':
+          case 9:
             mydisp.drawBitmap256(337, 0, 50, 50, i09n256);
             break;
 
-          case '10d':
+          case 10:
             mydisp.drawBitmap256(337, 0, 50, 50, i10d256);
             break;    
       
-          case '10n':
+          case 11:
             mydisp.drawBitmap256(337, 0, 50, 50, i10n256);
             break;
 

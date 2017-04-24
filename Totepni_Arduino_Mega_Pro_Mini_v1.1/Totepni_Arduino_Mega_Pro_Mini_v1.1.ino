@@ -36,7 +36,7 @@ BoardPin 2 - 31 - rezerva
 #include "SoftwareSerial.h"
 #include "DallasTemperature.h"
 #include "AM2320.h"
-//#include "avr/wdt.h"
+#include "avr/wdt.h"
 
 
 
@@ -358,10 +358,20 @@ void loop() {
     } 
 
 
+  mydisp.setColor(WHITE);
+  mydisp.setTextPosAbs(137, 202);
+  mydisp.print("W: ");
+  mydisp.print(actWeather);
+  mydisp.print(" P: ");
+  mydisp.print(sizeof(actualWeather));
+  mydisp.print("     ");
+
   // zobrazime ikonku pocasi
-  display_Weather(actualWeather[actWeather]);
+  //display_Weather(actualWeather['02d']);
+  display_Weather(actWeather);
   actWeather++;
-  if(actWeather >= sizeof(actualWeather)){
+  // if(actWeather >= sizeof(actualWeather)){
+  if(actWeather >= 12){
     actWeather = 0;
     }               
 
