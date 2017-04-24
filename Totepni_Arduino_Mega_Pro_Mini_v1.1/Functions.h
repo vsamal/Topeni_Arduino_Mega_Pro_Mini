@@ -109,8 +109,28 @@ void showAlarm(String callnumber)
 
 
 
+//explode string
+
+String getValue(String data, char separator, int index)
+{
+    int found = 0;
+    int strIndex[] = { 0, -1 };
+    int maxIndex = data.length() - 1;
+
+    for (int i = 0; i <= maxIndex && found <= index; i++) {
+        if (data.charAt(i) == separator || i == maxIndex) {
+            found++;
+            strIndex[0] = strIndex[1] + 1;
+            strIndex[1] = (i == maxIndex) ? i+1 : i;
+        }
+    }
+    return found > index ? data.substring(strIndex[0], strIndex[1]) : "";
+}
+
+
+
 // ikonky pocasi
-void display_Weather(int weather)
+void display_Weather(String weather)
 {
 
         mydisp.setColor(WHITE);
@@ -119,87 +139,84 @@ void display_Weather(int weather)
         mydisp.print(weather);
         mydisp.print("      ");
   
-        switch(weather) {
-      
-          case 0:
-            mydisp.drawBitmap256(337, 0, 50, 50, i01d256);
-            break;    
-      
-          case 1:
-            mydisp.drawBitmap256(337, 0, 50, 50, i01n256);
-            break;
-
-          case 2:
-            mydisp.drawBitmap256(337, 0, 50, 50, i02d256);
-            break;    
-      
-          case 3:
-            mydisp.drawBitmap256(337, 0, 50, 50, i02n256);
-            break;
-
-          case 4:
-            mydisp.drawBitmap256(337, 0, 50, 50, i03d256);
-            break;    
-      
-          case 5:
-            mydisp.drawBitmap256(337, 0, 50, 50, i03n256);
-            break;
-
-          case 6:
-            mydisp.drawBitmap256(337, 0, 50, 50, i04d256);
-            break;    
-      
-          case 7:
-            mydisp.drawBitmap256(337, 0, 50, 50, i04n256);
-            break;
-                        
-          case 8:
-            mydisp.drawBitmap256(337, 0, 50, 50, i09d256);
-            break;    
-      
-          case 9:
-            mydisp.drawBitmap256(337, 0, 50, 50, i09n256);
-            break;
-
-          case 10:
-            mydisp.drawBitmap256(337, 0, 50, 50, i10d256);
-            break;    
-      
-          case 11:
-            mydisp.drawBitmap256(337, 0, 50, 50, i10n256);
-            break;
-
-          case '11d':
-            mydisp.drawBitmap256(337, 0, 50, 50, i11d256);
-            break;    
-      
-          case '11n':
-            mydisp.drawBitmap256(337, 0, 50, 50, i11n256);
-            break;
-
-          case '13d':
-            mydisp.drawBitmap256(337, 0, 50, 50, i13d256);
-            break;    
-      
-          case '13n':
-            mydisp.drawBitmap256(337, 0, 50, 50, i13n256);
-            break;
-
-          case '50d':
-            mydisp.drawBitmap256(337, 0, 50, 50, i50d256);
-            break;    
-      
-          case '50n':
-            mydisp.drawBitmap256(337, 0, 50, 50, i50n256);
-            break;
-
-                  
-          default:
-            mydisp.drawBitmap256(337, 0, 50, 50, i01d256);
-            break;
-        }
-
   
+      
+          if(weather == "01d"){
+            mydisp.drawBitmap256(337, 0, 50, 50, i01d256);
+           }    
+      
+          else if(weather == "01n"){
+            mydisp.drawBitmap256(337, 0, 50, 50, i01n256);
+           }
+
+          else if(weather == "02d"){
+            mydisp.drawBitmap256(337, 0, 50, 50, i02d256);
+           }    
+      
+          else if(weather == "02n"){
+            mydisp.drawBitmap256(337, 0, 50, 50, i02n256);
+           }
+
+          else if(weather == "03d"){
+            mydisp.drawBitmap256(337, 0, 50, 50, i03d256);
+           }    
+      
+          else if(weather == "03n"){
+            mydisp.drawBitmap256(337, 0, 50, 50, i03n256);
+           }
+
+          else if(weather == "04d"){
+            mydisp.drawBitmap256(337, 0, 50, 50, i04d256);
+           }    
+      
+          else if(weather == "04n"){
+            mydisp.drawBitmap256(337, 0, 50, 50, i04n256);
+           }
+                        
+          else if(weather == "09d"){
+            mydisp.drawBitmap256(337, 0, 50, 50, i09d256);
+           }    
+      
+          else if(weather == "09n"){
+            mydisp.drawBitmap256(337, 0, 50, 50, i09n256);
+           }
+
+          else if(weather == "10d"){
+            mydisp.drawBitmap256(337, 0, 50, 50, i10d256);
+           }    
+      
+          else if(weather == "10n"){
+            mydisp.drawBitmap256(337, 0, 50, 50, i10n256);
+           }
+
+          else if(weather == "11d"){
+            mydisp.drawBitmap256(337, 0, 50, 50, i11d256);
+           }    
+      
+          else if(weather == "11n"){
+            mydisp.drawBitmap256(337, 0, 50, 50, i11n256);
+           }
+
+          else if(weather == "13d"){
+            mydisp.drawBitmap256(337, 0, 50, 50, i13d256);
+           }    
+      
+          else if(weather == "13n"){
+            mydisp.drawBitmap256(337, 0, 50, 50, i13n256);
+           }
+
+          else if(weather == "50d"){
+            mydisp.drawBitmap256(337, 0, 50, 50, i50d256);
+           }    
+      
+          else if(weather == "50n"){
+            mydisp.drawBitmap256(337, 0, 50, 50, i50n256);
+           }
+          
+          else{
+            mydisp.drawBitmap256(337, 0, 50, 50, i01d256);
+           }
+ 
 }
 
 
@@ -210,7 +227,7 @@ void display_Icons()
   //draw image function have:drawBitmap() for 1bit image,drawBitmap256() for 8bit image,drawBitmap262K() for 18bit image
   //use our image convert tool to convert, www.digole.com/tools
   // mydisp.drawBitmap256(337, 0, 64, 64, weather_sun_256);
-  display_Weather('01d');
+  display_Weather("01d");
   mydisp.drawBitmap256(330, 80, 64, 64, temphmeter_a_256);
   mydisp.drawBitmap256(330, 160, 64, 64, home_icon_3_256); 
   

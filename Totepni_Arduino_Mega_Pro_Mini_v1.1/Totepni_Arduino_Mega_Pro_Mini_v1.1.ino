@@ -63,7 +63,7 @@ BoardPin 2 - 31 - rezerva
 #define TOPENI 0xE0
 
 byte actWeather = 0;
-char* actualWeather[] = {"01d", "01n", "02d", "02n", "03d", "03n", "04d", "04n", "09d", "09n", "10d", "10n", "11d", "11n", "13d", "13n", "50d", "50n"};
+String actualWeather[] = {"01d", "01n", "02d", "02n", "03d", "03n", "04d", "04n", "09d", "09n", "10d", "10n", "11d", "11n", "13d", "13n", "50d", "50n"};
 
 
 
@@ -139,6 +139,9 @@ int data_read;
 int set_val;
 char read_buffer;
 boolean nalez = false;
+boolean nalez_data = false;
+char nalez_data_value = "01d:23.9:polojasno";
+
 
 // the dns server ip
 // IPAddress dnServer(193, 85, 1, 12);
@@ -358,19 +361,32 @@ void loop() {
     } 
 
 
+
+  // precteme aktualni pocasi
+  String val_icon = getValue(nalez_data_value, ':', 0);
+  String val_tepmerature = getValue(nalez_data_value, ':', 1);
+  String val_pocasi = getValue(nalez_data_value, ':', 2);
+    
+  Serial.println("icon: " + val_icon);
+  Serial.println("tepmerature: " + val_tepmerature);
+  Serial.println("pocasi:  " + val_pocasi);
+
+
+
+
   mydisp.setColor(WHITE);
   mydisp.setTextPosAbs(137, 202);
   mydisp.print("W: ");
   mydisp.print(actWeather);
   mydisp.print(" P: ");
-  mydisp.print(sizeof(actualWeather));
+  mydisp.print((sizeof(actualWeather)/sizeof(String)));
   mydisp.print("     ");
 
   // zobrazime ikonku pocasi
-  //display_Weather(actualWeather['02d']);
-  display_Weather(actWeather);
+  display_Weather(actualWeather[actWeather]);
   actWeather++;
-  // if(actWeather >= sizeof(actualWeather)){
+  
+  // if(actWeather >= sizeof((sizeof(actualWeather)/sizeof(String)))){
   if(actWeather >= 12){
     actWeather = 0;
     }               
@@ -456,9 +472,10 @@ void read_data_topeni(int send_relay) {
           Serial.println(rele_set[send_relay]);
 
           nalez = false;
+          nalez_data = false;
           byte relec = 1;        
           delay(1);
-          
+          nalez_data_value = "";
 
           // precteni dat z internetu
                     
@@ -468,6 +485,7 @@ void read_data_topeni(int send_relay) {
      
                 
                 if (read_buffer == '>'){nalez = false;}
+                if (read_buffer == ']'){nalez_data = false;}
                  
                 if (nalez){
 
@@ -478,9 +496,14 @@ void read_data_topeni(int send_relay) {
                   if (read_buffer == '1'){rele_set[relec] = 1;}
                   relec++;                  
 
+                }else if (nalez_data){
+
+                  nalez_data_value += read_buffer;
+                  
                 }
   
                 if (read_buffer == '<'){nalez = true;}
+                if (read_buffer == '['){nalez_data = true;}
                          
             }
           }
