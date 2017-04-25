@@ -144,79 +144,79 @@ void display_Weather(String weather)
   
       
           if(weather == "01d"){
-            mydisp.drawBitmap256(337, 0, 50, 50, i01d256);
+            mydisp.drawBitmap256(330, 0, 64, 64, i01d256);
            }    
       
           else if(weather == "01n"){
-            mydisp.drawBitmap256(337, 0, 50, 50, i01n256);
+            mydisp.drawBitmap256(330, 0, 64, 64, i01n256);
            }
 
           else if(weather == "02d"){
-            mydisp.drawBitmap256(337, 0, 50, 50, i02d256);
+            mydisp.drawBitmap256(330, 0, 64, 64, i02d256);
            }    
       
           else if(weather == "02n"){
-            mydisp.drawBitmap256(337, 0, 50, 50, i02n256);
+            mydisp.drawBitmap256(330, 0, 64, 64, i02n256);
            }
 
           else if(weather == "03d"){
-            mydisp.drawBitmap256(337, 0, 50, 50, i03d256);
+            mydisp.drawBitmap256(330, 0, 64, 64, i03d256);
            }    
       
           else if(weather == "03n"){
-            mydisp.drawBitmap256(337, 0, 50, 50, i03n256);
+            mydisp.drawBitmap256(330, 0, 64, 64, i03n256);
            }
 
           else if(weather == "04d"){
-            mydisp.drawBitmap256(337, 0, 50, 50, i04d256);
+            mydisp.drawBitmap256(330, 0, 64, 64, i04d256);
            }    
       
           else if(weather == "04n"){
-            mydisp.drawBitmap256(337, 0, 50, 50, i04n256);
+            mydisp.drawBitmap256(330, 0, 64, 64, i04n256);
            }
                         
           else if(weather == "09d"){
-            mydisp.drawBitmap256(337, 0, 50, 50, i09d256);
+            mydisp.drawBitmap256(330, 0, 64, 64, i09d256);
            }    
       
           else if(weather == "09n"){
-            mydisp.drawBitmap256(337, 0, 50, 50, i09n256);
+            mydisp.drawBitmap256(330, 0, 64, 64, i09n256);
            }
 
           else if(weather == "10d"){
-            mydisp.drawBitmap256(337, 0, 50, 50, i10d256);
+            mydisp.drawBitmap256(330, 0, 64, 64, i10d256);
            }    
       
           else if(weather == "10n"){
-            mydisp.drawBitmap256(337, 0, 50, 50, i10n256);
+            mydisp.drawBitmap256(330, 0, 64, 64, i10n256);
            }
 
           else if(weather == "11d"){
-            mydisp.drawBitmap256(337, 0, 50, 50, i11d256);
+            mydisp.drawBitmap256(330, 0, 64, 64, i11d256);
            }    
       
           else if(weather == "11n"){
-            mydisp.drawBitmap256(337, 0, 50, 50, i11n256);
+            mydisp.drawBitmap256(330, 0, 64, 64, i11n256);
            }
 
           else if(weather == "13d"){
-            mydisp.drawBitmap256(337, 0, 50, 50, i13d256);
+            mydisp.drawBitmap256(330, 0, 64, 64, i13d256);
            }    
       
           else if(weather == "13n"){
-            mydisp.drawBitmap256(337, 0, 50, 50, i13n256);
+            mydisp.drawBitmap256(330, 0, 64, 64, i13n256);
            }
 
           else if(weather == "50d"){
-            mydisp.drawBitmap256(337, 0, 50, 50, i50d256);
+            mydisp.drawBitmap256(330, 0, 64, 64, i50d256);
            }    
       
           else if(weather == "50n"){
-            mydisp.drawBitmap256(337, 0, 50, 50, i50n256);
+            mydisp.drawBitmap256(330, 0, 64, 64, i50n256);
            }
           
           else{
-            mydisp.drawBitmap256(337, 0, 50, 50, i01d256);
+            mydisp.drawBitmap256(330, 0, 64, 64, i01d256);
            }
  
 }
@@ -228,7 +228,7 @@ void display_Icons()
   // mydisp.drawStr(0, 0, "Draw 256 color image");
   //draw image function have:drawBitmap() for 1bit image,drawBitmap256() for 8bit image,drawBitmap262K() for 18bit image
   //use our image convert tool to convert, www.digole.com/tools
-  // mydisp.drawBitmap256(337, 0, 64, 64, weather_sun_256);
+  // mydisp.drawBitmap256(330, 0, 64, 64, weather_sun_256);
   display_Weather("01d");
   mydisp.drawBitmap256(330, 80, 64, 64, temphmeter_a_256);
   mydisp.drawBitmap256(330, 160, 64, 64, home_icon_3_256); 

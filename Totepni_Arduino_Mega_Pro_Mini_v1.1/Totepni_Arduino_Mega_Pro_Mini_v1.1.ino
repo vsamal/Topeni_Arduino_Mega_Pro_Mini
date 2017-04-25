@@ -381,7 +381,7 @@ void loop() {
   mydisp.setFont(0);
   
   mydisp.setColor(WHITE);
-  mydisp.setTextPosAbs(0, 202);
+  mydisp.setTextPosAbs(0, 227);
 
   mydisp.print(val_misto + " ");
   mydisp.print(val_icon + " ");
