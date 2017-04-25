@@ -140,7 +140,7 @@ int set_val;
 char read_buffer;
 boolean nalez = false;
 boolean nalez_data = false;
-char nalez_data_value = "01d:23.9:polojasno";
+String nalez_data_value = "01d:23.9:polojasno";
 
 
 // the dns server ip
@@ -366,6 +366,10 @@ void loop() {
   String val_icon = getValue(nalez_data_value, ':', 0);
   String val_tepmerature = getValue(nalez_data_value, ':', 1);
   String val_pocasi = getValue(nalez_data_value, ':', 2);
+  String val_vlhkost = getValue(nalez_data_value, ':', 3);
+  String val_tepmerature_min = getValue(nalez_data_value, ':', 4);
+  String val_tepmerature_max = getValue(nalez_data_value, ':', 5);
+  String val_misto = getValue(nalez_data_value, ':', 6);
     
   Serial.println("icon: " + val_icon);
   Serial.println("tepmerature: " + val_tepmerature);
@@ -374,16 +378,30 @@ void loop() {
 
 
 
+  mydisp.setFont(0);
+  
   mydisp.setColor(WHITE);
-  mydisp.setTextPosAbs(137, 202);
+  mydisp.setTextPosAbs(0, 202);
+
+  mydisp.print(val_misto + " ");
+  mydisp.print(val_icon + " ");
+  mydisp.print(val_tepmerature + " ");
+  mydisp.print(val_pocasi + " ");
+  
+  /*
   mydisp.print("W: ");
   mydisp.print(actWeather);
   mydisp.print(" P: ");
   mydisp.print((sizeof(actualWeather)/sizeof(String)));
   mydisp.print("     ");
+  */
+
+  mydisp.setFont(fontTemperature);
 
   // zobrazime ikonku pocasi
-  display_Weather(actualWeather[actWeather]);
+  display_Weather(val_icon);
+  // display_Weather(actualWeather[actWeather]);
+  
   actWeather++;
   
   // if(actWeather >= sizeof((sizeof(actualWeather)/sizeof(String)))){

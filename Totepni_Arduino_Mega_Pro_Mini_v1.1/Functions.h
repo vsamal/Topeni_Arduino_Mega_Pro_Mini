@@ -133,11 +133,13 @@ String getValue(String data, char separator, int index)
 void display_Weather(String weather)
 {
 
+        /*
         mydisp.setColor(WHITE);
         mydisp.setTextPosAbs(0, 202);
         mydisp.print("P: ");
         mydisp.print(weather);
         mydisp.print("      ");
+        */
   
   
       
