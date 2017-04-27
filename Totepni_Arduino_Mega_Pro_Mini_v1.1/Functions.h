@@ -273,7 +273,7 @@ void display_Status(int sensor, byte stav)
 
 void clr_wdt() {
 
-      // wdt_reset();
+      wdt_reset();
   
 }
 

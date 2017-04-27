@@ -62,7 +62,6 @@ BoardPin 2 - 31 - rezerva
 #define RELE 0x2C
 #define TOPENI 0xE0
 
-byte actWeather = 0;
 String actualWeather[] = {"01d", "01n", "02d", "02n", "03d", "03n", "04d", "04n", "09d", "09n", "10d", "10n", "11d", "11n", "13d", "13n", "50d", "50n"};
 
 
@@ -176,7 +175,7 @@ char server[] = "www.ipf.cz"; //server, kam se pripojujeme
 
 void setup()   {                
 
-  // wdt_enable(WDTO_8S);
+  wdt_enable(WDTO_8S);
   
   Wire.begin();  
   Serial.begin(9600);
@@ -264,17 +263,12 @@ void setup()   {
 
 
 void loop() {
-  
-  // --------- tepomery ----------
-  senzoryDS.requestTemperatures();
-  readTemp();
-  // read_data_topeni();
 
 
- 
+
   next_sd++;
   
-  if (next_sd > 5){  
+  if (next_sd > 15){  
 
         next_sd = 0;
   
@@ -320,6 +314,8 @@ void loop() {
         }  
     // Serial.println("OK");  
 
+    clr_wdt();
+
 
 
 
@@ -337,6 +333,11 @@ void loop() {
     }
     // Serial.println("OK");  
 
+    clr_wdt();
+
+
+
+
 
 
   // obcas precteme nastaveni z internetu
@@ -346,10 +347,67 @@ void loop() {
         Serial.println("Read internet ready");  
         next = millis() + 11000;        
 
-        read_data_topeni(0); // precteme data z intenetu
+
+      // --------- tepomery ----------
+      senzoryDS.requestTemperatures();
+      readTemp();
+
+      clr_wdt();
+      read_data_topeni(0); // precteme data z intenetu
+      clr_wdt();
+      
+
+      // precteme aktualni pocasi a zobrazime ikonku a hodnoty
+      String val_icon = getValue(nalez_data_value, ':', 0);
+      String val_tepmerature = getValue(nalez_data_value, ':', 1);
+      String val_pocasi = getValue(nalez_data_value, ':', 2);
+      String val_vlhkost = getValue(nalez_data_value, ':', 3);
+      String val_tepmerature_min = getValue(nalez_data_value, ':', 4);
+      String val_tepmerature_max = getValue(nalez_data_value, ':', 5);
+      String val_misto = getValue(nalez_data_value, ':', 6);
+        
+      Serial.println("icon: " + val_icon);
+      Serial.println("tepmerature: " + val_tepmerature);
+      Serial.println("pocasi:  " + val_pocasi);
+      Serial.println("min: " + val_tepmerature_min);
+      Serial.println("max: " + val_tepmerature_max);
+
+      clr_wdt();
+    
+    
+    
+    
+      mydisp.setFont(0);
+      
+      mydisp.setColor(WHITE);
+      mydisp.setTextPosAbs(0, 237);
+    
+      mydisp.print(val_misto + " ");
+      mydisp.print(val_icon + " ");
+      mydisp.print(val_tepmerature + " ");
+      mydisp.print(val_pocasi + " ");
+      mydisp.print(val_tepmerature_min + " - ");
+      mydisp.print(val_tepmerature_max + " ");
+      
+      /*
+      mydisp.print(" P: ");
+      mydisp.print((sizeof(actualWeather)/sizeof(String)));
+      mydisp.print("     ");
+      */
+    
+      mydisp.setFont(fontTemperature);
+    
+      // zobrazime ikonku pocasi
+      display_Weather(val_icon);  
+
+      clr_wdt();
+    
         
   }
   // Serial.println("Test internet OK");  
+
+
+
 
 
 
@@ -360,54 +418,7 @@ void loop() {
            display_Status(i, rele_set[positionStatus_pos[i]]);
     } 
 
-
-
-  // precteme aktualni pocasi
-  String val_icon = getValue(nalez_data_value, ':', 0);
-  String val_tepmerature = getValue(nalez_data_value, ':', 1);
-  String val_pocasi = getValue(nalez_data_value, ':', 2);
-  String val_vlhkost = getValue(nalez_data_value, ':', 3);
-  String val_tepmerature_min = getValue(nalez_data_value, ':', 4);
-  String val_tepmerature_max = getValue(nalez_data_value, ':', 5);
-  String val_misto = getValue(nalez_data_value, ':', 6);
-    
-  Serial.println("icon: " + val_icon);
-  Serial.println("tepmerature: " + val_tepmerature);
-  Serial.println("pocasi:  " + val_pocasi);
-
-
-
-
-  mydisp.setFont(0);
-  
-  mydisp.setColor(WHITE);
-  mydisp.setTextPosAbs(0, 227);
-
-  mydisp.print(val_misto + " ");
-  mydisp.print(val_icon + " ");
-  mydisp.print(val_tepmerature + " ");
-  mydisp.print(val_pocasi + " ");
-  
-  /*
-  mydisp.print("W: ");
-  mydisp.print(actWeather);
-  mydisp.print(" P: ");
-  mydisp.print((sizeof(actualWeather)/sizeof(String)));
-  mydisp.print("     ");
-  */
-
-  mydisp.setFont(fontTemperature);
-
-  // zobrazime ikonku pocasi
-  display_Weather(val_icon);
-  // display_Weather(actualWeather[actWeather]);
-  
-  actWeather++;
-  
-  // if(actWeather >= sizeof((sizeof(actualWeather)/sizeof(String)))){
-  if(actWeather >= 12){
-    actWeather = 0;
-    }               
+             
 
 }
 
