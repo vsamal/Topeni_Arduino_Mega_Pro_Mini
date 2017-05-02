@@ -1,3 +1,20 @@
+void displayInit(void)
+{
+  mydisp.setBgColor(0); //set another back ground color
+  mydisp.setColor(WHITE); //set fore ground color, 8bit format, for 24bit color format, use:setTrueColor(R,G,B)
+  mydisp.clearScreen(); //CLear screen    
+}
+
+void displayHomePage(void)
+{
+  mydisp.setFont(fontTemperature);
+  display_Icons();
+  showRooms();
+  showRoomsTemp();
+}
+
+
+
 void showRooms(void)
 {
 
@@ -96,8 +113,8 @@ void showAlarm(String callnumber)
             
             mydisp.setFont(fontSystem);
             mydisp.setColor(RED);                          
-            mydisp.print("*** Alarm ***");              
-            mydisp.print("Volam cislo: ");
+            mydisp.print("* Alarm *");              
+            mydisp.print("vytacim: ");
             mydisp.print(callnumber);            
                 
     }else{
@@ -270,6 +287,20 @@ void display_Status(int sensor, byte stav)
   }
   
 }
+
+
+
+void setRelay(void){
+
+      // nastavime relatka dle stavu
+      set_val = 0;
+      for(int i = 1; i <= 8; i++){
+             digitalWrite(rele_modul[i], !rele_set[i]);
+             display_Status(i, rele_set[positionStatus_pos[i]]);
+      }     
+  
+  }
+
 
 void clr_wdt() {
 

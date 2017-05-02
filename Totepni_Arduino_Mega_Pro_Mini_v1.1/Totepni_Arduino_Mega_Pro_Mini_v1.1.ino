@@ -1,6 +1,17 @@
 /*
   https://arduino-info.wikispaces.com/Ethernet
 
+  AT prikazy: 
+  https://www.arduinotech.cz/inpage/jak-jednoduse-na-gsm-ii-dil-at-prikazy/
+
+
+  pocet prvku v poli zjistime: 
+
+  String actualWeather[] = {"01d", "01n", "02d", "02n", "03d", "03n", "04d", "04n", "09d", "09n", "10d", "10n", "11d", "11n", "13d", "13n", "50d", "50n"};
+  pocet_prvku_v_poli = ((sizeof(actualWeather)/sizeof(String)));
+ 
+
+
 rele 1 - A0, A2, A4, A6
 key 1  - A1, A3, A5, A7
 
@@ -73,17 +84,20 @@ String actualWeather[] = {"01d", "01n", "02d", "02n", "03d", "03n", "04d", "04n"
 #include "Wire.h"
 DigoleSerialDisp mydisp(&Wire, '\x27'); //I2C:Arduino UNO: SDA (data line) is on analog input pin 4, and SCL (clock line) is on analog input pin 5 on UNO and Duemilanove
 
-
+void displayInit(void);
+void displayHomePage(void);
 void display_Icons(void);
 void display_Status(void);
 void display_Weather(void);
 void use_User_Font_Standard(void);
 void use_User_Font_In_Flash_Chip(void);
 
+void setRelay(void);
 void delayWDT(void);
 void showRooms(void);
 void showRoomsTemp(void);
 void showAlarm(void);
+
 
 
 // definice cidla teplota a vlhkost
@@ -112,11 +126,12 @@ int positionStatus_pos[9] = {99, 1, 2, 3, 0, 4, 0, 0, 0};
 byte SIM_reset = 28;
 byte alarm = 29;
 boolean is_alarm = false;
-byte led_alarm = 34;
 byte led_internet_error = 32;
-byte led_pwr = 36;
-byte led_fnc = 38;
+byte led_alarm = 34;
+byte led_fnc = 36;
+byte led_pwr = 38;
 
+int internetreadcount;
 char sim_read;
 
 // nastavení čísla vstupního pinu
@@ -131,15 +146,14 @@ DallasTemperature senzoryDS(&oneWireDS);
 EthernetClient client;
 // Ethernet PINs 10, 11, 12, 13
 signed long next;
-byte page_cnt;
-int next_sd;  
-int next_wd;
+byte page_cnt; 
 int data_read;
 int set_val;
 char read_buffer;
 boolean nalez = false;
 boolean nalez_data = false;
 String nalez_data_value = "01d:23.9:polojasno";
+String mobile_data;
 
 
 // the dns server ip
@@ -151,6 +165,7 @@ IPAddress gateway(192, 168, 1, 1);
 IPAddress subnet(255, 255, 255, 0);
 //the IP address is dependent on your network
 IPAddress ip(192, 168, 1, 15);
+
 
 /*
 // --- Dneboh ---
@@ -170,6 +185,7 @@ uint8_t mac[6] = {0x00,0x01,0x02,0x03,0x04,0x05};
 char server[] = "www.ipf.cz"; //server, kam se pripojujeme
 
 #include "Data.h" //include images and fonts
+#include "Data_weather_icons.h" // include weather icons
 #include "Functions.h" //include images and fonts
 
 
@@ -184,14 +200,13 @@ void setup()   {
   // zapnutí komunikace knihovny s Dallas teplotním čidlem
   senzoryDS.begin();
 
-  delayWDT(11);
-  mydisp.setBgColor(0); //set another back ground color
-  mydisp.setColor(WHITE); //set fore ground color, 8bit format, for 24bit color format, use:setTrueColor(R,G,B)
-  mydisp.clearScreen(); //CLear screen  
-    
+  delayWDT(11);    
 
   
   mydisp.begin(); //initiate serial port  
+
+  displayInit();
+
 
   // tlacitka relatek jako vstupy s pull up odporem na vstupu
   for(int i = 1; i <= 8; i++){
@@ -244,11 +259,8 @@ void setup()   {
   // use_User_Font_Standard();  // upload fonts
   // use_User_Font_In_Flash_Chip // upload fonts to flash
   
-  mydisp.setFont(fontTemperature);
-
-  display_Icons();
-  showRooms();
-  showRoomsTemp();
+  // zobrazi ikonky a popisky pokoju
+  displayHomePage();
 
 
   // strankovac displeje
@@ -263,34 +275,6 @@ void setup()   {
 
 
 void loop() {
-
-
-
-  next_sd++;
-  
-  if (next_sd > 15){  
-
-        next_sd = 0;
-  
-        if(page_cnt == 1){
-                  
-                  showRoomsTemp(); 
-                           
-                  page_cnt++;
-                  
-        }else if(page_cnt == 2){ // jen kdybysme stránkovali
-
-                  showRoomsTemp();
-                    
-                  page_cnt = 1;
-          
-        }
-              
-        delay(100);
-        
-        clr_wdt();
-        
-  }
 
 
   // ----------- tlacitka a alarm a Internet ----------
@@ -326,7 +310,6 @@ void loop() {
     for(int i = 1; i <= 8; i++){
           if(digitalRead(tlacitko_modul[i]) == LOW){
             Serial.println(i); //vypise stisknute tlacitko
-            next_sd = 999;
             setRelayFromKey(i);
           }
           delay(1);
@@ -344,81 +327,113 @@ void loop() {
   // Serial.println("Test internet");  
   if (((signed long)(millis() - next)) > 0){
       
-        Serial.println("Read internet ready");  
-        next = millis() + 11000;        
-
-
+      
       // --------- tepomery ----------
       senzoryDS.requestTemperatures();
       readTemp();
+        
+      clr_wdt();
+        
+        
+      Serial.println("Read internet ready");  
+      next = millis() + 11000;        
+
 
       clr_wdt();
       read_data_topeni(0); // precteme data z intenetu
       clr_wdt();
       
 
-      // precteme aktualni pocasi a zobrazime ikonku a hodnoty
-      String val_icon = getValue(nalez_data_value, ':', 0);
-      String val_tepmerature = getValue(nalez_data_value, ':', 1);
-      String val_pocasi = getValue(nalez_data_value, ':', 2);
-      String val_vlhkost = getValue(nalez_data_value, ':', 3);
-      String val_tepmerature_min = getValue(nalez_data_value, ':', 4);
-      String val_tepmerature_max = getValue(nalez_data_value, ':', 5);
-      String val_misto = getValue(nalez_data_value, ':', 6);
+
+        // pokud zobrazujeme teplotu
+        if(page_cnt == 1){
+            
+                    showRoomsTemp(); 
         
-      Serial.println("icon: " + val_icon);
-      Serial.println("tepmerature: " + val_tepmerature);
-      Serial.println("pocasi:  " + val_pocasi);
-      Serial.println("min: " + val_tepmerature_min);
-      Serial.println("max: " + val_tepmerature_max);
+                    // precteme aktualni pocasi a zobrazime ikonku a hodnoty
+                    String val_icon = getValue(nalez_data_value, ':', 0);
+                    String val_tepmerature = getValue(nalez_data_value, ':', 1);
+                    String val_pocasi = getValue(nalez_data_value, ':', 2);
+                    String val_vlhkost = getValue(nalez_data_value, ':', 3);
+                    String val_tepmerature_min = getValue(nalez_data_value, ':', 4);
+                    String val_tepmerature_max = getValue(nalez_data_value, ':', 5);
+                    String val_misto = getValue(nalez_data_value, ':', 6);
+                      
+                    Serial.println("icon: " + val_icon);
+                    Serial.println("tepmerature: " + val_tepmerature);
+                    Serial.println("pocasi:  " + val_pocasi);
+                    Serial.println("min: " + val_tepmerature_min);
+                    Serial.println("max: " + val_tepmerature_max); 
+              
+                    clr_wdt();
+                                                                        
+                    mydisp.setFont(0);
+                    
+                    mydisp.setColor(WHITE);
+                    mydisp.setTextPosAbs(0, 237);
+                  
+                    mydisp.print(val_misto + " ");
+                    mydisp.print(" (");
+                    mydisp.print(internetreadcount );
+                    mydisp.print(") ");
+                    mydisp.print(val_tepmerature + " ");
+                    mydisp.print(val_vlhkost + " ");
+                    mydisp.print(val_pocasi + " ");
+                    mydisp.print(val_tepmerature_min + " - ");
+                    mydisp.print(val_tepmerature_max + " ");                                     
+                  
+                    // zobrazime ikonku pocasi
+                    display_Weather(val_icon);  
+              
+                    clr_wdt();
+              
+                    mydisp.setTextPosAbs(0, 221);
+                    
+                    mydisp.setFont(fontSystem);
+                    mydisp.setColor(WHITE);
+              
+                    Serial1.print("AT+COPS?");
+                    delay(100);  
+              
+                    String mobile_data = "";
+                           
+                    if(Serial1.available()){
+                                while (Serial1.available()){
+                                  sim_read = Serial1.read();
+                                  mobile_data = mobile_data + sim_read;
+                                  
+                                  clr_wdt();
+                                  
+                                }
+              
+                                String mobile_provider = getValue(mobile_data, '"', 1);
+                                mydisp.print(mobile_provider); 
+                                
+                    }else{
+                                mydisp.print(" nedostupny...");                    
+                    }
+              
+                    mydisp.print("         "); 
 
-      clr_wdt();
-    
-    
-    
-    
-      mydisp.setFont(0);
-      
-      mydisp.setColor(WHITE);
-      mydisp.setTextPosAbs(0, 237);
-    
-      mydisp.print(val_misto + " ");
-      mydisp.print(val_icon + " ");
-      mydisp.print(val_tepmerature + " ");
-      mydisp.print(val_pocasi + " ");
-      mydisp.print(val_tepmerature_min + " - ");
-      mydisp.print(val_tepmerature_max + " ");
-      
-      /*
-      mydisp.print(" P: ");
-      mydisp.print((sizeof(actualWeather)/sizeof(String)));
-      mydisp.print("     ");
-      */
-    
+      }
+
+      // eof zobrazeni teploty
+
+
+
+       
       mydisp.setFont(fontTemperature);
-    
-      // zobrazime ikonku pocasi
-      display_Weather(val_icon);  
 
       clr_wdt();
-    
+
+      setRelay();
         
   }
   // Serial.println("Test internet OK");  
 
 
 
-
-
-
-  // nastavime relatka dle stavu
-    set_val = 0;
-    for(int i = 1; i <= 8; i++){
-           digitalWrite(rele_modul[i], !rele_set[i]);
-           display_Status(i, rele_set[positionStatus_pos[i]]);
-    } 
-
-             
+           
 
 }
 
@@ -508,6 +523,8 @@ void read_data_topeni(int send_relay) {
 
           // precteni dat z internetu
                     
+          internetreadcount = 0;
+          
           while(client.connected()) {
             if(client.available()) {
                 char read_buffer = client.read();
@@ -533,8 +550,18 @@ void read_data_topeni(int send_relay) {
   
                 if (read_buffer == '<'){nalez = true;}
                 if (read_buffer == '['){nalez_data = true;}
+
+                clr_wdt();
                          
             }
+
+            // mozna povolit i tady chce otestovat aby na tom nevysel
+            if(internetreadcount < 30000){
+                clr_wdt();
+            }
+
+            internetreadcount++;
+            
           }
         
     
@@ -588,6 +615,8 @@ void setRelayFromKey(int tlac_press){
             Serial.println(" nastaveno");
             
             read_data_topeni(tlac_press);
+
+            setRelay();
             
             // delay(1000);
             clr_wdt();
