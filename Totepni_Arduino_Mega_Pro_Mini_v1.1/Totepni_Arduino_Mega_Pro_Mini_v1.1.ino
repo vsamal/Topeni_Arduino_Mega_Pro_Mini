@@ -133,6 +133,11 @@ byte led_pwr = 38;
 
 int internetreadcount;
 char sim_read;
+String mobile_data_value;
+
+int mobile_REG;
+int mobile_SQ;
+String mobile_OP;
 
 // nastavení čísla vstupního pinu
 const int pinCidlaDS = 7;
@@ -392,25 +397,14 @@ void loop() {
                     mydisp.setFont(fontSystem);
                     mydisp.setColor(WHITE);
               
-                    Serial1.print("AT+COPS?");
-                    delay(100);  
-              
-                    String mobile_data = "";
+                    getMobileStatus();
                            
-                    if(Serial1.available()){
-                                while (Serial1.available()){
-                                  sim_read = Serial1.read();
-                                  mobile_data = mobile_data + sim_read;
-                                  
-                                  clr_wdt();
-                                  
-                                }
-              
-                                String mobile_provider = getValue(mobile_data, '"', 1);
-                                mydisp.print(mobile_provider); 
+                    if(mobile_REG == 1){
+                         mydisp.print(mobile_OP); 
+                         mydisp.print(" signal: " + mobile_SQ); 
                                 
                     }else{
-                                mydisp.print(" nedostupny...");                    
+                         mydisp.print(" nedostupny...");                    
                     }
               
                     mydisp.print("         "); 

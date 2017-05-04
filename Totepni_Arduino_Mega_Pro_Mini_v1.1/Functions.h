@@ -104,25 +104,6 @@ void showRoomsTemp()
   
 }
 
-void showAlarm(String callnumber)
-{
-
-  mydisp.setTextPosAbs(0, 221);
-  
-  if(callnumber){
-            
-            mydisp.setFont(fontSystem);
-            mydisp.setColor(RED);                          
-            mydisp.print("* Alarm *");              
-            mydisp.print("vytacim: ");
-            mydisp.print(callnumber);            
-                
-    }else{
-      
-            mydisp.print("                                    ");
-    }
-  
-}
 
 
 
@@ -142,6 +123,88 @@ String getValue(String data, char separator, int index)
         }
     }
     return found > index ? data.substring(strIndex[0], strIndex[1]) : "";
+}
+
+
+
+
+void readMobileStatus(String atCommand)
+{
+ 
+
+         mobile_data_value = "";
+
+         Serial1.println(atCommand);
+         delay(100);
+
+         if (Serial1.available()>0)
+        
+          {
+                while (Serial1.available()){
+                                
+                                sim_read = Serial1.read();
+                                mobile_data_value = mobile_data_value + sim_read;
+                                                                                            
+                        }
+                  
+          }
+
+          // Serial.print("Readed data: ");
+          // Serial.println(mobile_data_value);
+          
+}
+
+
+void getMobileStatus(void)
+{
+     
+     readMobileStatus("AT+CREG?");
+     mobile_REG = getValue(mobile_data_value, ',', 1).toInt();
+     
+     readMobileStatus("AT+CSQ");     
+     mobile_SQ = getValue(mobile_data_value, ':', 1).toInt();
+     
+     readMobileStatus("AT+COPS?");
+     mobile_OP = getValue(mobile_data_value, '"', 1); 
+     
+
+          
+     /*          
+     Serial.print("Registrace v siti: ");
+     Serial.println(mobile_REG);
+     Serial.print("Sila signalu: ");
+     Serial.println(mobile_SQ);
+     Serial.print("Operator: ");
+     Serial.println(mobile_OP);             
+     */
+     
+  
+}
+
+
+
+
+
+
+
+void showAlarm(String callnumber)
+{
+
+  mydisp.setTextPosAbs(0, 221);
+  
+  if(callnumber){
+            
+            mydisp.setFont(fontSystem);
+            mydisp.setColor(RED);                          
+            mydisp.print("* Alarm *");              
+            mydisp.print("vytacim: ");
+            mydisp.print(callnumber);            
+                
+    }else{
+      
+            mydisp.print("                                    ");
+    }
+  
 }
 
 
