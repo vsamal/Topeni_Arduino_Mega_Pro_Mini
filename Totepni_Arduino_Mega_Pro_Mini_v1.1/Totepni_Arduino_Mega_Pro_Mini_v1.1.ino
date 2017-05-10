@@ -87,6 +87,7 @@ DigoleSerialDisp mydisp(&Wire, '\x27'); //I2C:Arduino UNO: SDA (data line) is on
 void displayInit(void);
 void displayHomePage(void);
 void display_Icons(void);
+void showLog(void);
 void display_Status(void);
 void display_Weather(void);
 void use_User_Font_Standard(void);
@@ -110,6 +111,10 @@ float vlhkost;
 byte fontTemperature = 200; // 200
 byte fontSystem = 0;
 
+// display zapnuto
+byte displayOn = 1;
+byte led_pwrOn = 1;
+
 // tlacitka vstupu
 byte tlacitko_modul[9] = {99, A1, A3, A5, A7, A8, A10, A12, A14};
 byte tlacitko_modul_b[5] = {99, 33, 35, 37, 39};
@@ -121,6 +126,9 @@ byte rele_set[9] = {99, 1, 1, 1, 1, 1, 1, 1, 1};
 int positionStatus_x[9] = {99, 0, 0, 0, 0, 0, 0, 0, 0};
 int positionStatus_y[9] = {99, 0, 30, 60, 90, 120, 150, 180, 210};
 int positionStatus_pos[9] = {99, 1, 2, 3, 0, 4, 0, 0, 0};
+
+int positionTempIcon[] = {0, 0, 80, 160};
+
 
 // detekce alarmu
 byte SIM_reset = 28;
@@ -151,6 +159,8 @@ DallasTemperature senzoryDS(&oneWireDS);
 EthernetClient client;
 // Ethernet PINs 10, 11, 12, 13
 signed long next;
+signed long next_led_pwr;
+signed long next_led_fnc;
 byte page_cnt; 
 int data_read;
 int set_val;
@@ -196,6 +206,8 @@ char server[] = "www.ipf.cz"; //server, kam se pripojujeme
 
 void setup()   {                
 
+  showLog("setup");
+  
   wdt_enable(WDTO_8S);
   
   Wire.begin();  
@@ -271,11 +283,13 @@ void setup()   {
   // strankovac displeje
   page_cnt = 1;
   
-  // info casovac dalsiho precteni dat z webu
+  // info casovac dalsiho precteni dat z webu a ledky
   next = 0;
+  next_led_pwr = 0;
+  next_led_fnc = 0;
 
   
-
+  
 }
 
 
@@ -287,6 +301,9 @@ void loop() {
 
    // zkontrolujeme alarm 
   // Serial.println("Test alarm");  
+  
+  showLog("alarm");
+  
   if(digitalRead(alarm) == LOW){
              delay(300);
              if(digitalRead(alarm) == LOW){
@@ -310,24 +327,60 @@ void loop() {
 
 
 
+    showLog("keys A");
+    
     // projedeme si stisknuta tlacitka
-    // Serial.println("Test key");  
     for(int i = 1; i <= 8; i++){
           if(digitalRead(tlacitko_modul[i]) == LOW){
-            Serial.println(i); //vypise stisknute tlacitko
+            // Serial.println(i); //vypise stisknute tlacitko
             setRelayFromKey(i);
           }
           delay(1);
     }
-    // Serial.println("OK");  
+
 
     clr_wdt();
 
 
+    showLog("keys B");
+    
+    // projedeme si stisknuta tlacitka B
+    for(int i = 1; i <= 4; i++){
+          if(digitalRead(tlacitko_modul_b[i]) == LOW){            
+            setKey(i);
+          }
+          delay(1);
+    }
+  
+
+    clr_wdt();
+
+
+  showLog("PWR led");
+  
+  // obcas blikneme pover led  
+  if (((signed long)(millis() - next_led_pwr)) > 0 && led_pwrOn == 0){
+    
+              digitalWrite(led_pwr, LOW); 
+              led_pwrOn = 1;
+    
+    }
+  
+  if (((signed long)(millis() - next_led_pwr)) > 300){
+    
+        digitalWrite(led_pwr, HIGH);
+        next_led_pwr = millis() + 1100;  
+        led_pwrOn = 0;
+        
+    }
 
 
 
+    clr_wdt();
 
+
+  showLog("teplomery start");
+  
   // obcas precteme nastaveni z internetu
   // Serial.println("Test internet");  
   if (((signed long)(millis() - next)) > 0){
@@ -347,12 +400,16 @@ void loop() {
       clr_wdt();
       read_data_topeni(0); // precteme data z intenetu
       clr_wdt();
+
+      
       
 
 
         // pokud zobrazujeme teplotu
         if(page_cnt == 1){
             
+                    showLog("teplomery write");
+                    
                     showRoomsTemp(); 
         
                     // precteme aktualni pocasi a zobrazime ikonku a hodnoty
@@ -363,12 +420,24 @@ void loop() {
                     String val_tepmerature_min = getValue(nalez_data_value, ':', 4);
                     String val_tepmerature_max = getValue(nalez_data_value, ':', 5);
                     String val_misto = getValue(nalez_data_value, ':', 6);
+
+                    String val_icon_zitra = getValue(nalez_data_value, ':', 7);
+                    String val_tepmerature_zitra = getValue(nalez_data_value, ':', 8);
+                    String val_tepmerature_min_zitra = getValue(nalez_data_value, ':', 9);
+                    String val_tepmerature_max_zitra = getValue(nalez_data_value, ':', 10);
+                    
+                    String val_icon_pozitri = getValue(nalez_data_value, ':', 11);
+                    String val_tepmerature_pozitri = getValue(nalez_data_value, ':', 12);
+                    String val_tepmerature_min_pozitri = getValue(nalez_data_value, ':', 13);
+                    String val_tepmerature_max_pozitri = getValue(nalez_data_value, ':', 14);
                       
+                    /*                    
                     Serial.println("icon: " + val_icon);
                     Serial.println("tepmerature: " + val_tepmerature);
                     Serial.println("pocasi:  " + val_pocasi);
                     Serial.println("min: " + val_tepmerature_min);
                     Serial.println("max: " + val_tepmerature_max); 
+                    */
               
                     clr_wdt();
                                                                         
@@ -377,18 +446,41 @@ void loop() {
                     mydisp.setColor(WHITE);
                     mydisp.setTextPosAbs(0, 237);
                   
-                    mydisp.print(val_misto + " ");
-                    mydisp.print(" (");
-                    mydisp.print(internetreadcount );
-                    mydisp.print(") ");
-                    mydisp.print(val_tepmerature + " ");
-                    mydisp.print(val_vlhkost + " ");
-                    mydisp.print(val_pocasi + " ");
-                    mydisp.print(val_tepmerature_min + " - ");
-                    mydisp.print(val_tepmerature_max + " ");                                     
+                    mydisp.print(val_misto);
+                    mydisp.print(" ");                    
+                    
+                    mydisp.setColor(CYAN);
+                    mydisp.print(val_tepmerature); 
+                    mydisp.print(val_pocasi);
+
+                    mydisp.setColor(WHITE);
+                    mydisp.print(" vlhkost: ");
+                    mydisp.setColor(CYAN);
+                    mydisp.print(val_vlhkost);
+                    
+                    mydisp.setColor(WHITE);
+                    
+                    
+                    
+                    // 0, 80, 160
+                    
+                    mydisp.setTextPosAbs(330, 77);
+                    mydisp.print(val_tepmerature_min + "C-");
+                    mydisp.print(val_tepmerature_max + "C ");                                     
+
+                    mydisp.setTextPosAbs(330, 157);
+                    mydisp.print(val_tepmerature_min_zitra + "C-");
+                    mydisp.print(val_tepmerature_max_zitra + "C ");                                     
+
+                    mydisp.setTextPosAbs(330, 240);
+                    mydisp.print(val_tepmerature_min_pozitri + "C-");
+                    mydisp.print(val_tepmerature_max_pozitri + "C ");
+
                   
-                    // zobrazime ikonku pocasi
-                    display_Weather(val_icon);  
+                    // zobrazime ikonky pocasi
+                    display_Weather(val_icon, 1);
+                    display_Weather(val_icon_zitra, 2);
+                    display_Weather(val_icon_pozitri, 3);  
               
                     clr_wdt();
               
@@ -397,17 +489,31 @@ void loop() {
                     mydisp.setFont(fontSystem);
                     mydisp.setColor(WHITE);
               
+                    showLog("mobile status");
+                    
                     getMobileStatus();
                            
                     if(mobile_REG == 1){
                          mydisp.print(mobile_OP); 
-                         mydisp.print(" signal: " + mobile_SQ); 
+                         mydisp.print(" signal: ");
+                         mydisp.print(mobile_SQ);  
                                 
                     }else{
-                         mydisp.print(" nedostupny...");                    
+                         mydisp.print("nedostupny...");                    
                     }
               
                     mydisp.print("         "); 
+
+
+                    //system log
+                    mydisp.setColor(MAGENTA);                    
+                    mydisp.setTextPosAbs(0, 203);
+                    
+                    mydisp.print("(");
+                    mydisp.print(internetreadcount );
+                    mydisp.print(") ");
+
+                    mydisp.setColor(WHITE);
 
       }
 
@@ -462,6 +568,8 @@ void readTemp() {
 void read_data_topeni(int send_relay) {
 
       
+      showLog("internet 1"); 
+      
       clr_wdt();
 
       digitalWrite(led_internet_error, LOW);
@@ -472,6 +580,8 @@ void read_data_topeni(int send_relay) {
       
       if (client.connect(server,80)){
 
+          showLog("internet 2"); 
+          
           Serial.println("Connected");
 
           // digitalWrite(, LOW);
@@ -496,7 +606,16 @@ void read_data_topeni(int send_relay) {
           client.print("&temp[4]=");
           client.print(senzoryDS.getTempCByIndex(2));
           client.print("&temp[5]=");
-          client.print(senzoryDS.getTempCByIndex(1));
+          client.print(senzoryDS.getTempCByIndex(3));
+          client.print("&temp[6]=");
+          client.print(senzoryDS.getTempCByIndex(4));
+
+          client.print("&mobile_REG=");
+          client.print(mobile_REG);
+          client.print("&mobile_SQ=");
+          client.print(mobile_SQ);
+          client.print("&mobile_OP=");
+          client.print(mobile_OP);                    
           
           client.println(" HTTP/1.0");
           client.print("Host: ");
@@ -518,6 +637,8 @@ void read_data_topeni(int send_relay) {
           // precteni dat z internetu
                     
           internetreadcount = 0;
+          
+          showLog("internet 3"); 
           
           while(client.connected()) {
             if(client.available()) {
@@ -558,7 +679,8 @@ void read_data_topeni(int send_relay) {
             
           }
         
-    
+          showLog("internet end");
+          
          //Serial.println();
          //Serial.println("Odpojuji.");
          delay(1);
@@ -566,6 +688,8 @@ void read_data_topeni(int send_relay) {
          delay(1);
          //Serial.println();
          client.stop();   
+
+         showLog("internet fin");
          
        }else{
         
@@ -623,7 +747,12 @@ void setRelayFromKey(int tlac_press){
 
 // alarm zavola na mobil
 void setAlarm(){
-            Serial.println("Alarm");                   
+            
+            showLog("alarm start"); 
+            
+            Serial.println("Alarm"); 
+
+            digitalWrite(led_alarm, LOW);
             
             //makeCall("604833891");
             //makeCall("605906254");
@@ -632,6 +761,8 @@ void setAlarm(){
             //makeCall("737226659");
 
             digitalWrite(led_alarm, HIGH);
+
+            showLog("alarm end");
             
 }
 
@@ -642,6 +773,8 @@ void makeCall(String callnumber){
             showAlarm(callnumber);
 
             clr_wdt();
+
+            showLog("alarm call");
             
             Serial1.print("ATD");
             Serial1.print(callnumber);
@@ -660,7 +793,10 @@ void makeCall(String callnumber){
         
             delayWDT(29);
                        
-            Serial1.println("ATH");                      
+            Serial1.println("ATH"); 
+            
+            showLog("alarm hang off");
+                                 
             delay (1000);
             void showAlarm();
             clr_wdt();
