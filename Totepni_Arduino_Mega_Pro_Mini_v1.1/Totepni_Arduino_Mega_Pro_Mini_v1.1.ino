@@ -47,6 +47,7 @@ BoardPin 2 - 31 - rezerva
 #include "SoftwareSerial.h"
 #include "DallasTemperature.h"
 #include "AM2320.h"
+#include "EEPROM.h"
 #include "avr/wdt.h"
 
 
@@ -142,7 +143,7 @@ byte led_pwr = 38;
 int internetreadcount;
 char sim_read;
 String mobile_data_value;
-
+int log_reset;
 int mobile_REG;
 int mobile_SQ;
 String mobile_OP;
@@ -206,7 +207,6 @@ char server[] = "www.ipf.cz"; //server, kam se pripojujeme
 
 void setup()   {                
 
-  showLog("setup");
   
   wdt_enable(WDTO_8S);
   
@@ -216,13 +216,6 @@ void setup()   {
 
   // zapnutí komunikace knihovny s Dallas teplotním čidlem
   senzoryDS.begin();
-
-  delayWDT(11);    
-
-  
-  mydisp.begin(); //initiate serial port  
-
-  displayInit();
 
 
   // tlacitka relatek jako vstupy s pull up odporem na vstupu
@@ -238,7 +231,12 @@ void setup()   {
   // rele jako vstupy na nastavime HIGH jako vypnute vstupy
   for(int i = 1; i <= 8; i++){
         pinMode(rele_modul[i], OUTPUT);
-        digitalWrite(rele_modul[i], rele_set[i]);
+        if(EEPROM.read(i) > 1){
+            EEPROM.write(i, 1);
+            delay(10);
+        }
+        //digitalWrite(rele_modul[i], rele_set[i]);
+        digitalWrite(rele_modul[i], EEPROM.read(i));
   }
 
   // vstup z alarmu    
@@ -268,6 +266,14 @@ void setup()   {
   digitalWrite(SIM_reset, HIGH);
 
 
+  delayWDT(11);    
+
+  
+  mydisp.begin(); //initiate serial port  
+
+  displayInit();
+
+
   Ethernet.begin(mac, ip, dnServer, gateway, subnet);
 
 
@@ -288,6 +294,9 @@ void setup()   {
   next_led_pwr = 0;
   next_led_fnc = 0;
 
+
+  showLog(1, 99);
+
   
   
 }
@@ -302,7 +311,7 @@ void loop() {
    // zkontrolujeme alarm 
   // Serial.println("Test alarm");  
   
-  showLog("alarm");
+  showLog(100);
   
   if(digitalRead(alarm) == LOW){
              delay(300);
@@ -327,7 +336,7 @@ void loop() {
 
 
 
-    showLog("keys A");
+    showLog(101);
     
     // projedeme si stisknuta tlacitka
     for(int i = 1; i <= 8; i++){
@@ -342,7 +351,7 @@ void loop() {
     clr_wdt();
 
 
-    showLog("keys B");
+    showLog(102);
     
     // projedeme si stisknuta tlacitka B
     for(int i = 1; i <= 4; i++){
@@ -356,7 +365,7 @@ void loop() {
     clr_wdt();
 
 
-  showLog("PWR led");
+  showLog(103);
   
   // obcas blikneme pover led  
   if (((signed long)(millis() - next_led_pwr)) > 0 && led_pwrOn == 0){
@@ -379,7 +388,7 @@ void loop() {
     clr_wdt();
 
 
-  showLog("teplomery start");
+  showLog(104);
   
   // obcas precteme nastaveni z internetu
   // Serial.println("Test internet");  
@@ -408,7 +417,7 @@ void loop() {
         // pokud zobrazujeme teplotu
         if(page_cnt == 1){
             
-                    showLog("teplomery write");
+                    showLog(105);
                     
                     showRoomsTemp(); 
         
@@ -489,7 +498,7 @@ void loop() {
                     mydisp.setFont(fontSystem);
                     mydisp.setColor(WHITE);
               
-                    showLog("mobile status");
+                    showLog(106);
                     
                     getMobileStatus();
                            
@@ -568,7 +577,7 @@ void readTemp() {
 void read_data_topeni(int send_relay) {
 
       
-      showLog("internet 1"); 
+      showLog(107); 
       
       clr_wdt();
 
@@ -580,7 +589,7 @@ void read_data_topeni(int send_relay) {
       
       if (client.connect(server,80)){
 
-          showLog("internet 2"); 
+          showLog(108); 
           
           Serial.println("Connected");
 
@@ -610,12 +619,16 @@ void read_data_topeni(int send_relay) {
           client.print("&temp[6]=");
           client.print(senzoryDS.getTempCByIndex(4));
 
+          client.print("&log_reset=");
+          client.print(log_reset);
+
           client.print("&mobile_REG=");
           client.print(mobile_REG);
           client.print("&mobile_SQ=");
           client.print(mobile_SQ);
           client.print("&mobile_OP=");
           client.print(mobile_OP);                    
+
           
           client.println(" HTTP/1.0");
           client.print("Host: ");
@@ -638,7 +651,7 @@ void read_data_topeni(int send_relay) {
                     
           internetreadcount = 0;
           
-          showLog("internet 3"); 
+          showLog(109); 
           
           while(client.connected()) {
             if(client.available()) {
@@ -653,8 +666,8 @@ void read_data_topeni(int send_relay) {
                   digitalWrite(led_internet_error, HIGH);
                   // Serial.print(read_buffer); //vypise prijata data
                   // na tohle mozna udelame funkci  
-                  if (read_buffer == '0'){rele_set[relec] = 0;}
-                  if (read_buffer == '1'){rele_set[relec] = 1;}
+                  if (read_buffer == '0'){rele_set[relec] = 0; EEPROM.write(relec, 1);}
+                  if (read_buffer == '1'){rele_set[relec] = 1; EEPROM.write(relec, 0);}
                   relec++;                  
 
                 }else if (nalez_data){
@@ -679,7 +692,7 @@ void read_data_topeni(int send_relay) {
             
           }
         
-          showLog("internet end");
+          showLog(110);
           
          //Serial.println();
          //Serial.println("Odpojuji.");
@@ -689,7 +702,7 @@ void read_data_topeni(int send_relay) {
          //Serial.println();
          client.stop();   
 
-         showLog("internet fin");
+         showLog(111);
          
        }else{
         
@@ -748,7 +761,7 @@ void setRelayFromKey(int tlac_press){
 // alarm zavola na mobil
 void setAlarm(){
             
-            showLog("alarm start"); 
+            showLog(112); 
             
             Serial.println("Alarm"); 
 
@@ -762,7 +775,7 @@ void setAlarm(){
 
             digitalWrite(led_alarm, HIGH);
 
-            showLog("alarm end");
+            showLog(113);
             
 }
 
@@ -774,7 +787,7 @@ void makeCall(String callnumber){
 
             clr_wdt();
 
-            showLog("alarm call");
+            showLog(114);
             
             Serial1.print("ATD");
             Serial1.print(callnumber);
@@ -795,7 +808,7 @@ void makeCall(String callnumber){
                        
             Serial1.println("ATH"); 
             
-            showLog("alarm hang off");
+            showLog(115);
                                  
             delay (1000);
             void showAlarm();

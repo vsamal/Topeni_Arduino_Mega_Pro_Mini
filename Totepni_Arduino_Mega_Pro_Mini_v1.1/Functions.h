@@ -13,22 +13,32 @@ void displayHomePage(void)
   showRoomsTemp();
 }
 
-void showLog(String showlog, int fontSet = 0)
+void showLog(int showlog, int fontSet = 0)
 {
 
-                   //system log
-                    /*                    
-                    mydisp.setFont(0);
-                    mydisp.setColor(MAGENTA);                    
-                    mydisp.setTextPosAbs(97, 203);
-                    
-                    mydisp.print("[ ");
-                    mydisp.print(showlog);
-                    mydisp.print(" ]       ");
 
-                    mydisp.setFont(fontSet);
-                    mydisp.setColor(WHITE);
-                    */
+                   
+                   if(fontSet == 99){                    
+  
+                        log_reset = EEPROM.read(21);
+                        
+                        mydisp.setFont(0);
+                        mydisp.setColor(MAGENTA);                    
+                        mydisp.setTextPosAbs(97, 203);
+                        
+                        mydisp.print("[ ");
+                        mydisp.print(log_reset);
+                        mydisp.print(" ]       ");
+    
+                        mydisp.setFont(fontSet);
+                        mydisp.setColor(WHITE);
+
+                   }else{
+
+                        EEPROM.write(21, showlog);
+                        delay(1);
+                    
+                   }
   
 }
 
