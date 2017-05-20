@@ -171,7 +171,7 @@ boolean nalez_data = false;
 String nalez_data_value = "01d:23.9:polojasno";
 String mobile_data;
 
-
+/*
 // the dns server ip
 // IPAddress dnServer(193, 85, 1, 12);
 IPAddress dnServer(192, 168, 1, 1);
@@ -181,9 +181,9 @@ IPAddress gateway(192, 168, 1, 1);
 IPAddress subnet(255, 255, 255, 0);
 //the IP address is dependent on your network
 IPAddress ip(192, 168, 1, 15);
+*/
 
 
-/*
 // --- Dneboh ---
 // the dns server ip
 IPAddress dnServer(10, 20, 30, 1);
@@ -193,12 +193,14 @@ IPAddress gateway(10, 20, 30, 1);
 IPAddress subnet(255, 255, 255, 0);
 //the IP address is dependent on your network
 IPAddress ip(10, 20, 30, 21);
-*/
+
 
 
 // byte mac[] = { 0xDE, 0xAD, 0xBE, 0xEF, 0xFE, 0xED };   //physical mac address
 uint8_t mac[6] = {0x00,0x01,0x02,0x03,0x04,0x05}; 
-char server[] = "www.ipf.cz"; //server, kam se pripojujeme
+
+char server[] = "samal.es"; //server, kam se pripojujeme
+// char server[] = "www.ipf.cz"; //server, kam se pripojujeme
 
 #include "Data.h" //include images and fonts
 #include "Data_weather_icons.h" // include weather icons
@@ -216,6 +218,7 @@ void setup()   {
 
   // zapnutí komunikace knihovny s Dallas teplotním čidlem
   senzoryDS.begin();
+  senzoryDS.setResolution(10);
 
 
   // tlacitka relatek jako vstupy s pull up odporem na vstupu
@@ -397,7 +400,9 @@ void loop() {
       
       // --------- tepomery ----------
       senzoryDS.requestTemperatures();
+      delay(100);
       readTemp();
+      delay(100);
         
       clr_wdt();
         

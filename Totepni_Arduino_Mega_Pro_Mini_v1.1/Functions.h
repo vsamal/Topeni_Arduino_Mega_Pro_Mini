@@ -104,24 +104,24 @@ void showRoomsTemp()
   mydisp.print(teplota, 1);
   mydisp.print("C ");
 
-  mydispSetColor(senzoryDS.getTempCByIndex(0));
+  mydispSetColor(senzoryDS.getTempCByIndex(1));
   mydisp.setTextPosAbs(245, 82);
-  mydisp.print(senzoryDS.getTempCByIndex(0), 1);
+  mydisp.print(senzoryDS.getTempCByIndex(1), 1);
   mydisp.print("C ");
 
-  mydispSetColor(senzoryDS.getTempCByIndex(0));
+  mydispSetColor(senzoryDS.getTempCByIndex(2));
   mydisp.setTextPosAbs(245, 112);
-  mydisp.print(senzoryDS.getTempCByIndex(0), 1);
+  mydisp.print(senzoryDS.getTempCByIndex(2), 1);
   mydisp.print("C ");
 
-  mydispSetColor(senzoryDS.getTempCByIndex(0));
+  mydispSetColor(senzoryDS.getTempCByIndex(3));
   mydisp.setTextPosAbs(245, 142);
-  mydisp.print(senzoryDS.getTempCByIndex(0), 1);
+  mydisp.print(senzoryDS.getTempCByIndex(3), 1);
   mydisp.print("C ");
 
-  mydispSetColor(senzoryDS.getTempCByIndex(0));
+  mydispSetColor(senzoryDS.getTempCByIndex(4));
   mydisp.setTextPosAbs(245, 172);
-  mydisp.print(senzoryDS.getTempCByIndex(0), 1);
+  mydisp.print(senzoryDS.getTempCByIndex(4), 1);
   mydisp.print("C ");
 
   mydisp.setColor(YELLOW);
