@@ -21,6 +21,7 @@ void showLog(int showlog, int fontSet = 0)
                    if(fontSet == 99){                    
   
                         log_reset = EEPROM.read(21);
+                        delay(1);
                         
                         mydisp.setFont(0);
                         mydisp.setColor(MAGENTA);                    
@@ -60,31 +61,47 @@ void showRooms(void)
   mydisp.print("Pokoj");
 
   mydisp.setTextPosAbs(35, 112);
-  mydisp.print("Koupelna");
+  mydisp.print("Puda");
 
   mydisp.setTextPosAbs(35, 142);
-  mydisp.print("Puda");
+  mydisp.print("Koupelna");
 
   mydisp.setTextPosAbs(35, 172);
   mydisp.print("Venku");
   
 }
 
-void mydispSetColor(int teplota)
+void mydispSetColorTemp(float teplota)
 {
-    if(teplota < 19){
+    if(teplota < -81){
+      
+       mydisp.setColor(BLUE);
+       // mydisp.print(" -    ");
+       
+    }else if(teplota > 81){
+      
+       mydisp.setColor(RED);
+       // mydisp.print(" -    ");
+              
+    }else if(teplota < 19){
       
        mydisp.setColor(CYAN);
-       
+       mydisp.print(teplota, 1);
+       mydisp.print("C ");
+              
     }else if(teplota < 26){
       
        mydisp.setColor(GREEN);
-       
+       mydisp.print(teplota, 1);
+       mydisp.print("C ");
+              
     }else{
       
-       mydisp.setColor(RED);
-       
+       mydisp.setColor(ORANGE);
+       mydisp.print(teplota, 1);
+       mydisp.print("C ");       
     }
+
 }
 
 void showRoomsTemp()
@@ -92,41 +109,29 @@ void showRoomsTemp()
 
   mydisp.setFont(fontTemperature);
 
-  mydisp.setColor(YELLOW);
 
-  mydispSetColor(senzoryDS.getTempCByIndex(0));  
   mydisp.setTextPosAbs(245, 22);
-  mydisp.print(senzoryDS.getTempCByIndex(0), 1);
-  mydisp.print("C ");
-
-  mydispSetColor(teplota);
+  mydispSetColorTemp(senzoryDS.getTempC(sensor_kuchyn));  
+  
   mydisp.setTextPosAbs(245, 52);
-  mydisp.print(teplota, 1);
-  mydisp.print("C ");
+  mydispSetColorTemp(senzoryDS.getTempC(sensor_obyvak));  
 
-  mydispSetColor(senzoryDS.getTempCByIndex(1));
   mydisp.setTextPosAbs(245, 82);
-  mydisp.print(senzoryDS.getTempCByIndex(1), 1);
-  mydisp.print("C ");
+  mydispSetColorTemp(senzoryDS.getTempC(sensor_pokoj));  
 
-  mydispSetColor(senzoryDS.getTempCByIndex(2));
   mydisp.setTextPosAbs(245, 112);
-  mydisp.print(senzoryDS.getTempCByIndex(2), 1);
-  mydisp.print("C ");
+  mydispSetColorTemp(senzoryDS.getTempC(sensor_puda));  
 
-  mydispSetColor(senzoryDS.getTempCByIndex(3));
   mydisp.setTextPosAbs(245, 142);
-  mydisp.print(senzoryDS.getTempCByIndex(3), 1);
-  mydisp.print("C ");
-
-  mydispSetColor(senzoryDS.getTempCByIndex(4));
+  mydispSetColorTemp(teplota);
+  
   mydisp.setTextPosAbs(245, 172);
-  mydisp.print(senzoryDS.getTempCByIndex(4), 1);
-  mydisp.print("C ");
+  mydispSetColorTemp(senzoryDS.getTempC(sensor_venku));
+  
 
   mydisp.setColor(YELLOW);
   
-  mydisp.setTextPosAbs(165, 52);
+  mydisp.setTextPosAbs(165, 142);
   mydisp.print(vlhkost, 1);
   mydisp.print("%");
   

@@ -126,9 +126,20 @@ byte rele_set[9] = {99, 1, 1, 1, 1, 1, 1, 1, 1};
 // pozice starus LED
 int positionStatus_x[9] = {99, 0, 0, 0, 0, 0, 0, 0, 0};
 int positionStatus_y[9] = {99, 0, 30, 60, 90, 120, 150, 180, 210};
-int positionStatus_pos[9] = {99, 1, 2, 3, 0, 4, 0, 0, 0};
+int positionStatus_pos[9] = {99, 1, 2, 3, 4, 1, 0, 0, 0};
 
 int positionTempIcon[] = {0, 0, 80, 160};
+
+// adresy teplomeru
+DeviceAddress sensor_kuchyn = { 0x28, 0xFF, 0x49, 0x02, 0xB2, 0x15, 0x01, 0xEB };  
+DeviceAddress sensor_obyvak = { 0x28, 0xFF, 0xA0, 0xAA, 0x90, 0x15, 0x01, 0xAC };
+DeviceAddress sensor_pokoj = { 0x28, 0xFF, 0xAB, 0x06, 0xB2, 0x15, 0x01, 0xBC };
+DeviceAddress sensor_puda = { 0x28, 0xFF, 0xE5, 0x69, 0xC2, 0x15, 0x02, 0xF0 };
+DeviceAddress sensor_koupelna = { 0x28, 0xFF, 0x66, 0x38, 0x71, 0x15, 0x01, 0x98 }; 
+DeviceAddress sensor_venku = { 0x28, 0xFF, 0x92, 0x6F, 0x92, 0x16, 0x04, 0x36 };
+
+
+// sensor_kuchyn, sensor_obyvak, sensor_pokoj, sensor_puda, sensor_venku
 
 
 // detekce alarmu
@@ -218,7 +229,13 @@ void setup()   {
 
   // zapnutí komunikace knihovny s Dallas teplotním čidlem
   senzoryDS.begin();
-  senzoryDS.setResolution(10);
+
+  // rozliseni senzoru 
+  senzoryDS.setResolution(sensor_kuchyn, 10);
+  senzoryDS.setResolution(sensor_obyvak, 10);
+  senzoryDS.setResolution(sensor_pokoj, 10);
+  senzoryDS.setResolution(sensor_puda, 10);
+  senzoryDS.setResolution(sensor_venku, 10);
 
 
   // tlacitka relatek jako vstupy s pull up odporem na vstupu
@@ -271,15 +288,12 @@ void setup()   {
 
   delayWDT(11);    
 
-  
+  Ethernet.begin(mac, ip, dnServer, gateway, subnet);
+
   mydisp.begin(); //initiate serial port  
 
   displayInit();
-
-
-  Ethernet.begin(mac, ip, dnServer, gateway, subnet);
-
-
+ 
   mydisp.setRotation(1);  
 
   // use_User_Font_Standard();  // upload fonts
@@ -296,7 +310,6 @@ void setup()   {
   next = 0;
   next_led_pwr = 0;
   next_led_fnc = 0;
-
 
   showLog(1, 99);
 
@@ -415,8 +428,6 @@ void loop() {
       read_data_topeni(0); // precteme data z intenetu
       clr_wdt();
 
-      
-      
 
 
         // pokud zobrazujeme teplotu
@@ -457,12 +468,8 @@ void loop() {
                                                                         
                     mydisp.setFont(0);
                     
-                    mydisp.setColor(WHITE);
                     mydisp.setTextPosAbs(0, 237);
                   
-                    mydisp.print(val_misto);
-                    mydisp.print(" ");                    
-                    
                     mydisp.setColor(CYAN);
                     mydisp.print(val_tepmerature); 
                     mydisp.print(val_pocasi);
@@ -473,8 +480,7 @@ void loop() {
                     mydisp.print(val_vlhkost);
                     
                     mydisp.setColor(WHITE);
-                    
-                    
+                                   
                     
                     // 0, 80, 160
                     
@@ -501,7 +507,6 @@ void loop() {
                     mydisp.setTextPosAbs(0, 221);
                     
                     mydisp.setFont(fontSystem);
-                    mydisp.setColor(WHITE);
               
                     showLog(106);
                     
@@ -513,11 +518,14 @@ void loop() {
                          mydisp.print(mobile_SQ);  
                                 
                     }else{
-                         mydisp.print("nedostupny...");                    
+                         mydisp.print("nedostupny...         ");                    
                     }
               
-                    mydisp.print("         "); 
+                    mydisp.print(" "); 
 
+                    mydisp.print(val_misto);
+                    mydisp.print(" ");                    
+                    
 
                     //system log
                     mydisp.setColor(MAGENTA);                    
@@ -614,15 +622,15 @@ void read_data_topeni(int send_relay) {
           client.print("&humid[1]=");
           client.print(vlhkost);
           client.print("&temp[2]=");
-          client.print(senzoryDS.getTempCByIndex(0));
+          client.print(senzoryDS.getTempC(sensor_kuchyn));
           client.print("&temp[3]=");
-          client.print(senzoryDS.getTempCByIndex(1));
+          client.print(senzoryDS.getTempC(sensor_obyvak));
           client.print("&temp[4]=");
-          client.print(senzoryDS.getTempCByIndex(2));
+          client.print(senzoryDS.getTempC(sensor_pokoj));
           client.print("&temp[5]=");
-          client.print(senzoryDS.getTempCByIndex(3));
+          client.print(senzoryDS.getTempC(sensor_puda));
           client.print("&temp[6]=");
-          client.print(senzoryDS.getTempCByIndex(4));
+          client.print(senzoryDS.getTempC(sensor_venku));
 
           client.print("&log_reset=");
           client.print(log_reset);
