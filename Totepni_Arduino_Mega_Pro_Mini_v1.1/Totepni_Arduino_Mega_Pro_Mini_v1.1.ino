@@ -116,6 +116,9 @@ byte fontSystem = 0;
 byte displayOn = 1;
 byte led_pwrOn = 1;
 
+// adresa logovani
+int logAddr = 0;
+
 // tlacitka vstupu
 byte tlacitko_modul[9] = {99, A1, A3, A5, A7, A8, A10, A12, A14};
 byte tlacitko_modul_b[5] = {99, 33, 35, 37, 39};
@@ -630,6 +633,8 @@ void read_data_topeni(int send_relay) {
           client.print("&temp[5]=");
           client.print(senzoryDS.getTempC(sensor_puda));
           client.print("&temp[6]=");
+          client.print(senzoryDS.getTempC(sensor_koupelna));
+          client.print("&temp[7]=");
           client.print(senzoryDS.getTempC(sensor_venku));
 
           client.print("&log_reset=");

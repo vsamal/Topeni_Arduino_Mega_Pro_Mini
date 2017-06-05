@@ -20,23 +20,23 @@ void showLog(int showlog, int fontSet = 0)
                    
                    if(fontSet == 99){                    
   
-                        log_reset = EEPROM.read(21);
+                        // log_reset = EEPROM.read(logAddr);
                         delay(1);
                         
-                        mydisp.setFont(0);
-                        mydisp.setColor(MAGENTA);                    
-                        mydisp.setTextPosAbs(97, 203);
+                        // mydisp.setFont(0);
+                        // mydisp.setColor(MAGENTA);                    
+                        // mydisp.setTextPosAbs(97, 203);
                         
-                        mydisp.print("[ ");
-                        mydisp.print(log_reset);
-                        mydisp.print(" ]       ");
+                        // mydisp.print("[ ");
+                        // mydisp.print(log_reset);
+                        // mydisp.print(" ]       ");
     
-                        mydisp.setFont(fontSet);
-                        mydisp.setColor(WHITE);
+                        // mydisp.setFont(fontSet);
+                        // mydisp.setColor(WHITE);
 
                    }else{
 
-                        EEPROM.write(21, showlog);
+                        // EEPROM.write(logAddr, showlog);
                         delay(1);
                     
                    }
@@ -114,16 +114,16 @@ void showRoomsTemp()
   mydispSetColorTemp(senzoryDS.getTempC(sensor_kuchyn));  
   
   mydisp.setTextPosAbs(245, 52);
-  mydispSetColorTemp(senzoryDS.getTempC(sensor_obyvak));  
+  mydispSetColorTemp(teplota);   
 
   mydisp.setTextPosAbs(245, 82);
-  mydispSetColorTemp(senzoryDS.getTempC(sensor_pokoj));  
+  mydispSetColorTemp(senzoryDS.getTempC(sensor_pokoj));
 
   mydisp.setTextPosAbs(245, 112);
   mydispSetColorTemp(senzoryDS.getTempC(sensor_puda));  
 
   mydisp.setTextPosAbs(245, 142);
-  mydispSetColorTemp(teplota);
+  mydispSetColorTemp(senzoryDS.getTempC(sensor_koupelna)); 
   
   mydisp.setTextPosAbs(245, 172);
   mydispSetColorTemp(senzoryDS.getTempC(sensor_venku));
@@ -131,7 +131,7 @@ void showRoomsTemp()
 
   mydisp.setColor(YELLOW);
   
-  mydisp.setTextPosAbs(165, 142);
+  mydisp.setTextPosAbs(165, 52);
   mydisp.print(vlhkost, 1);
   mydisp.print("%");
   
