@@ -122,8 +122,16 @@ int logAddr = 0;
 // tlacitka vstupu
 byte tlacitko_modul[9] = {99, A1, A3, A5, A7, A8, A10, A12, A14};
 byte tlacitko_modul_b[5] = {99, 33, 35, 37, 39};
+
 // pamet rele vystupu
-byte rele_modul[9] = {99, A0, A2, A4, A6, A9, A11, A13, A15};
+/*
+zapojeni relatek
+A0 - Puda
+A2 - Kuchyn / Koupelna
+A4 - Obyvak
+A6 - Loznice
+*/
+byte rele_modul[9] = {99, A2, A0, A4, A6, A9, A11, A13, A15};
 byte rele_set[9] = {99, 1, 1, 1, 1, 1, 1, 1, 1};
 
 // pozice starus LED

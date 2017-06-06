@@ -55,13 +55,13 @@ void showRooms(void)
   mydisp.print("Kuchyn");
 
   mydisp.setTextPosAbs(35, 52); 
-  mydisp.print("Obyvak");
+  mydisp.print("Puda");
 
   mydisp.setTextPosAbs(35, 82);
-  mydisp.print("Pokoj");
+  mydisp.print("Obyvak");
 
   mydisp.setTextPosAbs(35, 112);
-  mydisp.print("Puda");
+  mydisp.print("Loznice");
 
   mydisp.setTextPosAbs(35, 142);
   mydisp.print("Koupelna");
@@ -114,13 +114,13 @@ void showRoomsTemp()
   mydispSetColorTemp(senzoryDS.getTempC(sensor_kuchyn));  
   
   mydisp.setTextPosAbs(245, 52);
-  mydispSetColorTemp(teplota);   
+  mydispSetColorTemp(senzoryDS.getTempC(sensor_puda));
 
   mydisp.setTextPosAbs(245, 82);
-  mydispSetColorTemp(senzoryDS.getTempC(sensor_pokoj));
+  mydispSetColorTemp(teplota);
 
   mydisp.setTextPosAbs(245, 112);
-  mydispSetColorTemp(senzoryDS.getTempC(sensor_puda));  
+  mydispSetColorTemp(senzoryDS.getTempC(sensor_pokoj));  
 
   mydisp.setTextPosAbs(245, 142);
   mydispSetColorTemp(senzoryDS.getTempC(sensor_koupelna)); 
@@ -131,7 +131,7 @@ void showRoomsTemp()
 
   mydisp.setColor(YELLOW);
   
-  mydisp.setTextPosAbs(165, 52);
+  mydisp.setTextPosAbs(165, 82);
   mydisp.print(vlhkost, 1);
   mydisp.print("%");
   
